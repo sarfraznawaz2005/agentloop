@@ -9,7 +9,7 @@
     <LangVersion>12</LangVersion>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AssemblyName>AgentLoop</AssemblyName>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <!-- Production Optimizations -->
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
