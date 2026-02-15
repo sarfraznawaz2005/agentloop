@@ -1,0 +1,99 @@
+## .NET / C# / Visual Studio
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio files
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.rsuser
+
+# VS Code
+.vscode/
+dist/
+.claude/
+
+# Rider
+.idea/
+
+# Build results
+[Dd]ebugPublic/
+[Rr]eleases/
+build/
+*.dll
+*.exe
+*.pdb
+*.mdb
+
+# NuGet
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nupkg
+**/packages/repositories.config
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# User-specific files
+*.csproj.user
+*.vspx
+*.dbmdl
+*.jfm
+
+# Auto-generated files
+*_i.c
+*_p.c
+*_h.h
+*.ilk
+*.meta
+*.obj
+*.iobj
+*.ipdb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp_proj
+*_wpftmp.csproj
+*.vspscc
+*.vssscc
+
+# Test results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.trx
+*.coverage
+*.coveragexml
+
+# Publish profiles
+*.publishproj
+*.pubxml
+!**/[Pp]ublish[Pp]rofiles/*.pubxml
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+cli-agents.md
+future-features.txt
+todo.txt
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store

@@ -1,0 +1,94 @@
+<Window x:Class="AgentLoop.UI.Views.LogViewerDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:fa="clr-namespace:FontAwesome.Sharp;assembly=FontAwesome.Sharp"
+        xmlns:md="clr-namespace:MdXaml;assembly=MdXaml"
+        Title="Job Result"
+        Width="800" Height="600"
+        WindowStartupLocation="CenterScreen"
+        Style="{StaticResource ModernWindow}">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="{StaticResource SurfaceBrush}" 
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                CornerRadius="8" Padding="20" Margin="0,0,0,16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0" Grid.Column="0">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                        <TextBlock x:Name="JobNameText" Style="{StaticResource Heading}" VerticalAlignment="Center"/>
+                        <Ellipse x:Name="StatusDot" Width="12" Height="12" Margin="12,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <WrapPanel Orientation="Horizontal">
+                        <!-- Start Time -->
+                        <StackPanel Orientation="Horizontal" Margin="0,0,24,8">
+                            <TextBlock Text="Start Time:" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,8,0"/>
+                            <TextBlock x:Name="TimestampText" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        </StackPanel>
+
+                        <!-- Agent -->
+                        <StackPanel Orientation="Horizontal" Margin="0,0,24,8">
+                            <TextBlock Text="Run By:" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,8,0"/>
+                            <TextBlock x:Name="AgentNameText" Foreground="{StaticResource PrimaryBrush}" FontWeight="Medium"/>
+                        </StackPanel>
+
+                        <!-- Duration -->
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <TextBlock Text="Duration:" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,8,0"/>
+                            <TextBlock x:Name="DurationText" Foreground="{StaticResource TextPrimaryBrush}"/>
+                        </StackPanel>
+                    </WrapPanel>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Log Content -->
+        <Border Grid.Row="1" Background="{StaticResource HoverBrush}"
+                CornerRadius="8">
+            <md:MarkdownScrollViewer x:Name="MarkdownViewer"
+                                     Padding="16"
+                                     Background="Transparent">
+            </md:MarkdownScrollViewer>
+        </Border>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button Style="{StaticResource SecondaryButton}"
+                    Click="ExportClick" Margin="0,0,8,0">
+                <StackPanel Orientation="Horizontal">
+                    <fa:IconBlock Icon="FileExport" Style="{StaticResource ButtonIcon}"/>
+                    <TextBlock Text="Export"/>
+                </StackPanel>
+            </Button>
+            <Button Style="{StaticResource SecondaryButton}"
+                    Click="CopyClick" Margin="0,0,8,0">
+                <StackPanel Orientation="Horizontal">
+                    <fa:IconBlock Icon="Copy" Style="{StaticResource ButtonIcon}"/>
+                    <TextBlock Text="Copy"/>
+                </StackPanel>
+            </Button>
+            <Button Style="{StaticResource PrimaryButton}"
+                    Click="CloseClick">
+                <StackPanel Orientation="Horizontal">
+                    <fa:IconBlock Icon="Times" Style="{StaticResource ButtonIcon}"/>
+                    <TextBlock Text="Close"/>
+                </StackPanel>
+            </Button>
+        </StackPanel>
+    </Grid>
+</Window>

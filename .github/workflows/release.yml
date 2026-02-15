@@ -1,0 +1,54 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        arch: [x64, arm64]
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Build and Publish
+      run: |
+        dotnet publish src/AgentLoop.UI/AgentLoop.UI.csproj -c Release -r win-${{ matrix.arch }} --self-contained false -o publish-${{ matrix.arch }}
+
+    - name: Create Zip Package
+      run: |
+        Compress-Archive -Path publish-${{ matrix.arch }}\* -DestinationPath AgentLoop-win-${{ matrix.arch }}.zip
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: AgentLoop-win-${{ matrix.arch }}
+        path: AgentLoop-win-${{ matrix.arch }}.zip
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        merge-multiple: true
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: |
+          AgentLoop-win-x64.zip
+          AgentLoop-win-arm64.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

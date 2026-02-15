@@ -1,0 +1,404 @@
+<Window x:Class="AgentLoop.UI.Views.AddEditJobDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:fa="clr-namespace:FontAwesome.Sharp;assembly=FontAwesome.Sharp"
+        xmlns:vm="clr-namespace:AgentLoop.UI.ViewModels"
+        xmlns:models="clr-namespace:AgentLoop.Data.Models;assembly=AgentLoop.Data"
+        Title="{Binding WindowTitle}"
+        Width="700" Height="750"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize"
+        Style="{StaticResource ModernWindow}">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="24">
+        <StackPanel>
+
+            <!-- Job Name -->
+            <StackPanel Margin="0,0,0,16">
+            <TextBlock Text="Job Name" Style="{StaticResource SectionLabel}"/>
+            <TextBox Style="{StaticResource ModernTextBox}"
+                     Text="{Binding JobName, UpdateSourceTrigger=PropertyChanged}"/>
+        </StackPanel>
+
+            <!-- Prompt -->
+            <StackPanel Margin="0,0,0,16">
+            <TextBlock Text="Prompt" Style="{StaticResource SectionLabel}"/>
+            <TextBox Style="{StaticResource PromptTextBox}"
+                     Text="{Binding Prompt, UpdateSourceTrigger=PropertyChanged}"
+                     AcceptsReturn="True"
+                     TextWrapping="Wrap"
+                     Height="60"
+                     VerticalScrollBarVisibility="Auto"
+                     Padding="10,6"/>
+        </StackPanel>
+
+            <!-- Color and Icon Selection -->
+            <Grid Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="24"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0">
+                <TextBlock Text="Notification Color" Style="{StaticResource SectionLabel}"/>
+                <ListBox ItemsSource="{Binding AvailableColors}"
+                         SelectedItem="{Binding SelectedColor}"
+                         BorderThickness="0" Background="Transparent"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListBoxItem">
+                                        <Border x:Name="ColorBorder" Background="{Binding}" 
+                                                Width="32" Height="32" CornerRadius="16" 
+                                                BorderThickness="2" BorderBrush="Transparent"
+                                                Margin="0,0,6,0" Cursor="Hand">
+                                            <fa:IconBlock Icon="Check" Foreground="White" FontSize="14" 
+                                                         Visibility="{Binding IsSelected, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BoolToVisibility}}"
+                                                         VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter TargetName="ColorBorder" Property="BorderBrush" Value="{StaticResource TextPrimaryBrush}"/>
+                                            </Trigger>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="ColorBorder" Property="Opacity" Value="0.8"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                </ListBox>
+            </StackPanel>
+
+            <StackPanel Grid.Column="2">
+                <TextBlock Text="Job Icon" Style="{StaticResource SectionLabel}"/>
+                <ComboBox ItemsSource="{Binding AvailableIcons}"
+                          SelectedItem="{Binding SelectedIcon}"
+                          Style="{StaticResource ModernComboBox}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <fa:IconBlock Icon="{Binding}" Width="16" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </StackPanel>
+        </Grid>
+
+            <!-- Schedule Builder -->
+            <GroupBox Header="Schedule" Style="{StaticResource CardGroupBox}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Schedule Type Selection -->
+                <WrapPanel Grid.Row="0" Margin="0,0,0,16">
+                    <RadioButton Content="Minute" Style="{StaticResource ModernRadioButton}"
+                                 IsChecked="{Binding ScheduleType, Converter={StaticResource EnumToBool}, ConverterParameter={x:Static models:ScheduleType.Minute}}"/>
+                    <RadioButton Content="Hourly" Style="{StaticResource ModernRadioButton}"
+                                 IsChecked="{Binding ScheduleType, Converter={StaticResource EnumToBool}, ConverterParameter={x:Static models:ScheduleType.Hourly}}"/>
+                    <RadioButton Content="Daily" Style="{StaticResource ModernRadioButton}"
+                                 IsChecked="{Binding ScheduleType, Converter={StaticResource EnumToBool}, ConverterParameter={x:Static models:ScheduleType.Daily}}"/>
+                    <RadioButton Content="Daily Recurring" Style="{StaticResource ModernRadioButton}"
+                                 IsChecked="{Binding ScheduleType, Converter={StaticResource EnumToBool}, ConverterParameter={x:Static models:ScheduleType.DailyRecurring}}"/>
+                    <RadioButton Content="Weekly" Style="{StaticResource ModernRadioButton}"
+                                 IsChecked="{Binding ScheduleType, Converter={StaticResource EnumToBool}, ConverterParameter={x:Static models:ScheduleType.Weekly}}"/>
+                    <RadioButton Content="Monthly" Style="{StaticResource ModernRadioButton}"
+                                 IsChecked="{Binding ScheduleType, Converter={StaticResource EnumToBool}, ConverterParameter={x:Static models:ScheduleType.MonthlyDates}}"/>
+                </WrapPanel>
+
+                <!-- Schedule Options Panel -->
+                <Grid Grid.Row="1">
+                    <!-- Minute Options -->
+                    <StackPanel Visibility="{Binding ScheduleType, Converter={StaticResource EnumToVisibility}, ConverterParameter={x:Static models:ScheduleType.Minute}}">
+                        <TextBlock Text="Run every" Style="{StaticResource SectionLabel}"/>
+                        <StackPanel Orientation="Horizontal">
+                            <ComboBox Style="{StaticResource ModernComboBox}" Width="80"
+                                      SelectedValue="{Binding MinuteInterval}"
+                                      SelectedValuePath="Tag">
+                                <ComboBoxItem Content="1 min" Tag="1"/>
+                                <ComboBoxItem Content="3 min" Tag="3"/>
+                                <ComboBoxItem Content="5 min" Tag="5"/>
+                                <ComboBoxItem Content="10 min" Tag="10"/>
+                                <ComboBoxItem Content="15 min" Tag="15"/>
+                                <ComboBoxItem Content="30 min" Tag="30"/>
+                                <ComboBoxItem Content="45 min" Tag="45"/>
+                            </ComboBox>
+                            <TextBlock Text=" minute(s)" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Hourly Options -->
+                    <StackPanel Visibility="{Binding ScheduleType, Converter={StaticResource EnumToVisibility}, ConverterParameter={x:Static models:ScheduleType.Hourly}}">
+                        <TextBlock Text="Run every" Style="{StaticResource SectionLabel}"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                            <ComboBox Style="{StaticResource ModernComboBox}" Width="80"
+                                      SelectedValue="{Binding HourlyInterval}"
+                                      SelectedValuePath="Tag">
+                                <ComboBoxItem Content="1 hr" Tag="1"/>
+                                <ComboBoxItem Content="2 hrs" Tag="2"/>
+                                <ComboBoxItem Content="3 hrs" Tag="3"/>
+                                <ComboBoxItem Content="4 hrs" Tag="4"/>
+                                <ComboBoxItem Content="6 hrs" Tag="6"/>
+                                <ComboBoxItem Content="8 hrs" Tag="8"/>
+                                <ComboBoxItem Content="12 hrs" Tag="12"/>
+                            </ComboBox>
+                            <TextBlock Text=" hour(s)" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                        </StackPanel>
+                        <CheckBox Content="Restrict to specific days/times" Style="{StaticResource ModernCheckBox}"
+                                  IsChecked="{Binding HasTimeRestrictions}" Margin="0,0,0,8"/>
+                        
+                        <!-- Time Restrictions Panel -->
+                        <StackPanel Visibility="{Binding HasTimeRestrictions, Converter={StaticResource BoolToVisibility}}" Margin="0,0,0,8">
+                            <TextBlock Text="Days" Style="{StaticResource SectionLabel}"/>
+                            <ItemsControl ItemsSource="{Binding RestrictedDays}" Margin="0,0,0,12">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <ToggleButton Content="{Binding Label}"
+                                                      IsChecked="{Binding IsSelected}"
+                                                      Style="{StaticResource DayToggleButton}"
+                                                      Margin="0,0,6,0"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <TextBlock Text="Time Window" Style="{StaticResource SectionLabel}"/>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="From " VerticalAlignment="Center"/>
+                                <TextBox Style="{StaticResource ModernTextBox}" Width="70"
+                                         Text="{Binding TimeWindowStart, StringFormat=hh\\:mm}"/>
+                                <TextBlock Text=" To " VerticalAlignment="Center"/>
+                                <TextBox Style="{StaticResource ModernTextBox}" Width="70"
+                                         Text="{Binding TimeWindowEnd, StringFormat=hh\\:mm}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Daily Options -->
+                    <StackPanel Visibility="{Binding ScheduleType, Converter={StaticResource EnumToVisibility}, ConverterParameter={x:Static models:ScheduleType.Daily}}">
+                        <TextBlock Text="Run at" Style="{StaticResource SectionLabel}"/>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBox Style="{StaticResource ModernTextBox}" Width="80"
+                                     Text="{Binding RunTime, StringFormat=hh\\:mm}"/>
+                            <TextBlock Text=" (24-hour format)" VerticalAlignment="Center" Margin="8,0,0,0"
+                                       Foreground="{StaticResource TextSecondaryBrush}"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Daily Recurring Options -->
+                    <StackPanel Visibility="{Binding ScheduleType, Converter={StaticResource EnumToVisibility}, ConverterParameter={x:Static models:ScheduleType.DailyRecurring}}">
+                        <TextBlock Text="Repeat every" Style="{StaticResource SectionLabel}"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                            <ComboBox Style="{StaticResource ModernComboBox}" Width="80"
+                                      SelectedValue="{Binding DailyRecurringInterval}"
+                                      SelectedValuePath="Tag">
+                                <ComboBoxItem Content="1 hr" Tag="1"/>
+                                <ComboBoxItem Content="2 hrs" Tag="2"/>
+                                <ComboBoxItem Content="3 hrs" Tag="3"/>
+                                <ComboBoxItem Content="4 hrs" Tag="4"/>
+                                <ComboBoxItem Content="6 hrs" Tag="6"/>
+                            </ComboBox>
+                            <TextBlock Text=" starting at " VerticalAlignment="Center" Margin="8,0,8,0"/>
+                            <TextBox Style="{StaticResource ModernTextBox}" Width="80"
+                                     Text="{Binding StartTime, StringFormat=hh\\:mm}"/>
+                        </StackPanel>
+                        <CheckBox Content="Restrict to specific days/times" Style="{StaticResource ModernCheckBox}"
+                                  IsChecked="{Binding HasTimeRestrictions}" Margin="0,0,0,8"/>
+                        
+                        <!-- Time Restrictions Panel -->
+                        <StackPanel Visibility="{Binding HasTimeRestrictions, Converter={StaticResource BoolToVisibility}}" Margin="0,0,0,8">
+                            <TextBlock Text="Days" Style="{StaticResource SectionLabel}"/>
+                            <ItemsControl ItemsSource="{Binding RestrictedDays}" Margin="0,0,0,12">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <ToggleButton Content="{Binding Label}"
+                                                      IsChecked="{Binding IsSelected}"
+                                                      Style="{StaticResource DayToggleButton}"
+                                                      Margin="0,0,6,0"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <TextBlock Text="Time Window" Style="{StaticResource SectionLabel}"/>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="From " VerticalAlignment="Center"/>
+                                <TextBox Style="{StaticResource ModernTextBox}" Width="70"
+                                         Text="{Binding TimeWindowStart, StringFormat=hh\\:mm}"/>
+                                <TextBlock Text=" To " VerticalAlignment="Center"/>
+                                <TextBox Style="{StaticResource ModernTextBox}" Width="70"
+                                         Text="{Binding TimeWindowEnd, StringFormat=hh\\:mm}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Weekly Options -->
+                    <StackPanel Visibility="{Binding ScheduleType, Converter={StaticResource EnumToVisibility}, ConverterParameter={x:Static models:ScheduleType.Weekly}}">
+                        <TextBlock Text="Days of week" Style="{StaticResource SectionLabel}"/>
+                        <ItemsControl ItemsSource="{Binding WeekDays}" Margin="0,0,0,12">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <ToggleButton Content="{Binding Label}"
+                                                  IsChecked="{Binding IsSelected}"
+                                                  Style="{StaticResource DayToggleButton}"
+                                                  Margin="0,0,6,0"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock Text="Run at" Style="{StaticResource SectionLabel}"/>
+                        <TextBox Style="{StaticResource ModernTextBox}" Width="80"
+                                 Text="{Binding RunTime, StringFormat=hh\\:mm}"
+                                 HorizontalAlignment="Left"/>
+                    </StackPanel>
+
+                    <!-- Monthly Options -->
+                    <StackPanel Visibility="{Binding ScheduleType, Converter={StaticResource EnumToVisibility}, ConverterParameter={x:Static models:ScheduleType.MonthlyDates}}">
+                        <TextBlock Text="Days of month" Style="{StaticResource SectionLabel}"/>
+                        <ItemsControl ItemsSource="{Binding MonthDays}" Margin="0,0,0,12">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel MaxWidth="450"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <ToggleButton Content="{Binding Label}"
+                                                  IsChecked="{Binding IsSelected}"
+                                                  Style="{StaticResource DayToggleButton}"
+                                                  Width="38" Height="32"
+                                                  FontSize="11"
+                                                  Margin="0,0,4,4"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock Text="Run at" Style="{StaticResource SectionLabel}"/>
+                        <TextBox Style="{StaticResource ModernTextBox}" Width="80"
+                                 Text="{Binding RunTime, StringFormat=hh\\:mm}"
+                                 HorizontalAlignment="Left"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Schedule Preview -->
+                <Border Grid.Row="2" Background="{StaticResource PrimaryLightBrush}"
+                        CornerRadius="6" Padding="12,8" Margin="0,12,0,0">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Preview: " FontWeight="SemiBold"
+                                   Foreground="{StaticResource PrimaryBrush}"/>
+                        <TextBlock Text="{Binding SchedulePreview}"
+                                   Foreground="{StaticResource TextPrimaryBrush}"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </GroupBox>
+
+            <StackPanel Margin="0,16,0,0">
+            <Expander Header="Advanced Options" Style="{StaticResource {x:Type Expander}}">
+                <StackPanel Margin="0,8,0,0">
+                    <CheckBox x:Name="UseGlobalCheck" Content="Use Global Agent Command" Style="{StaticResource ModernCheckBox}"
+                              IsChecked="{Binding UseGlobalAgentCommand}" Margin="0,0,0,12"/>
+
+                    <StackPanel Visibility="{Binding IsChecked, ElementName=UseGlobalCheck, Converter={StaticResource BoolToVisibility}, ConverterParameter=Invert}">
+                        <TextBlock Text="Setup Method" Style="{StaticResource SectionLabel}"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,4,0,12">
+                            <RadioButton Content="Choose from list" 
+                                         IsChecked="{Binding IsPredefinedAgent}" 
+                                         Style="{StaticResource ModernRadioButton}"
+                                         Margin="0,0,24,0"/>
+                            <RadioButton Content="Custom command" 
+                                         IsChecked="{Binding IsCustomCommand}" 
+                                         Style="{StaticResource ModernRadioButton}"/>
+                        </StackPanel>
+
+                        <!-- Predefined List -->
+                        <StackPanel Visibility="{Binding IsPredefinedAgent, Converter={StaticResource BoolToVisibility}}" Margin="0,0,0,12">
+                            <TextBlock Text="Select Agent" Style="{StaticResource SectionLabel}"/>
+                            <ComboBox Style="{StaticResource ModernComboBox}"
+                                      ItemsSource="{Binding PredefinedAgents}"
+                                      SelectedItem="{Binding SelectedAgent}"
+                                      DisplayMemberPath="Name"
+                                      Margin="0,0,0,12"/>
+                            
+                            <TextBlock Text="Agent Command (Editable)" Style="{StaticResource SectionLabel}"/>
+                            <TextBox Style="{StaticResource ModernTextBox}"
+                                     Text="{Binding PredefinedAgentCommand, UpdateSourceTrigger=PropertyChanged}"
+                                     FontFamily="{StaticResource MonoFont}"/>
+                        </StackPanel>
+
+                        <!-- Custom Input -->
+                        <StackPanel Visibility="{Binding IsCustomCommand, Converter={StaticResource BoolToVisibility}}" Margin="0,0,0,12">
+                            <TextBlock Text="Enter Agent Command" Style="{StaticResource SectionLabel}"/>
+                            <TextBox Style="{StaticResource ModernTextBox}"
+                                     Text="{Binding CustomAgentCommand, UpdateSourceTrigger=PropertyChanged}"
+                                     FontFamily="{StaticResource MonoFont}"/>
+                            <TextBlock Text="Use {prompt} as a placeholder for your job prompts."
+                                       FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <TextBlock Text="{Binding GlobalAgentCommandHint}"
+                               Visibility="{Binding IsChecked, ElementName=UseGlobalCheck, Converter={StaticResource BoolToVisibility}}"
+                               FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,4,0,0"/>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                        <CheckBox Content="Silent mode (no notifications)" Style="{StaticResource ModernCheckBox}"
+                                  IsChecked="{Binding SilentMode}" Margin="0,0,24,0"/>
+                        <CheckBox Content="Enabled" Style="{StaticResource ModernCheckBox}"
+                                  IsChecked="{Binding Enabled}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Expander>
+        </StackPanel>
+
+            <!-- Buttons -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Style="{StaticResource SecondaryButton}"
+                    Command="{Binding TestRunCommand}" Margin="0,0,8,0">
+                <StackPanel Orientation="Horizontal">
+                    <fa:IconBlock Icon="PlayCircle" Style="{StaticResource ButtonIcon}"/>
+                    <TextBlock Text="Test Run"/>
+                </StackPanel>
+            </Button>
+            <Button Style="{StaticResource SecondaryButton}"
+                    Command="{Binding CancelCommand}" Margin="0,0,8,0">
+                <StackPanel Orientation="Horizontal">
+                    <fa:IconBlock Icon="Times" Style="{StaticResource ButtonIcon}"/>
+                    <TextBlock Text="Cancel"/>
+                </StackPanel>
+            </Button>
+            <Button Style="{StaticResource PrimaryButton}"
+                    Command="{Binding SaveCommand}">
+                <StackPanel Orientation="Horizontal">
+                    <fa:IconBlock Icon="Save" Style="{StaticResource ButtonIcon}"/>
+                    <TextBlock Text="Save"/>
+                </StackPanel>
+            </Button>
+        </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</Window>

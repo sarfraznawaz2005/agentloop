@@ -1,0 +1,138 @@
+<Window x:Class="AgentLoop.UI.Views.SetupDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:AgentLoop.UI.ViewModels"
+        xmlns:fa="clr-namespace:FontAwesome.Sharp;assembly=FontAwesome.Sharp"
+        Title="Welcome to AgentLoop - Setup Required"
+        Width="620" MinHeight="550" SizeToContent="Height"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize"
+        Style="{StaticResource ModernWindow}">
+    <Window.DataContext>
+        <vm:SetupDialogViewModel/>
+    </Window.DataContext>
+    <Grid Margin="32,24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="Welcome to AgentLoop" Style="{StaticResource Heading}" Margin="0,0,0,8"/>
+            <TextBlock Text="AgentLoop requires an AI agent command to execute jobs."
+                       Foreground="{StaticResource TextSecondaryBrush}" FontSize="13"/>
+            <TextBlock Text="Please configure your preferred AI agent below."
+                       Foreground="{StaticResource TextSecondaryBrush}" FontSize="13" Margin="0,4,0,0"/>
+        </StackPanel>
+
+        <!-- Selection Mode -->
+        <StackPanel Grid.Row="1" Margin="0,0,0,16">
+            <TextBlock Text="Setup Method" Style="{StaticResource SectionLabel}"/>
+            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                <RadioButton Content="Choose from list" 
+                             IsChecked="{Binding IsPredefinedAgent}" 
+                             Style="{StaticResource ModernRadioButton}"
+                             Margin="0,0,24,0"/>
+                <RadioButton Content="Custom command" 
+                             IsChecked="{Binding IsCustomCommand}" 
+                             Style="{StaticResource ModernRadioButton}"/>
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Input Area -->
+        <StackPanel Grid.Row="2" Margin="0,0,0,16">
+            <!-- Predefined List -->
+            <StackPanel Visibility="{Binding IsPredefinedAgent, Converter={StaticResource BoolToVisibility}}">
+                <TextBlock Text="Select Agent" Style="{StaticResource SectionLabel}"/>
+                <ComboBox Style="{StaticResource ModernComboBox}"
+                          ItemsSource="{Binding PredefinedAgents}"
+                          SelectedItem="{Binding SelectedAgent}"
+                          DisplayMemberPath="Name"
+                          Margin="0,0,0,12"/>
+                
+                <TextBlock Text="Agent Command (Editable)" Style="{StaticResource SectionLabel}"/>
+                <TextBox Style="{StaticResource ModernTextBox}"
+                         Text="{Binding PredefinedAgentCommand, UpdateSourceTrigger=PropertyChanged}"
+                         FontFamily="{StaticResource MonoFont}"
+                         FontSize="13"/>
+                <TextBlock Text="The command is pre-filled with recommended flags."
+                           FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,6,0,0"/>
+            </StackPanel>
+
+            <!-- Custom Input -->
+            <StackPanel Visibility="{Binding IsCustomCommand, Converter={StaticResource BoolToVisibility}}">
+                <TextBlock Text="Enter Agent Command" Style="{StaticResource SectionLabel}"/>
+                <TextBox Style="{StaticResource ModernTextBox}"
+                         Text="{Binding CustomAgentCommand, UpdateSourceTrigger=PropertyChanged}"
+                         FontFamily="{StaticResource MonoFont}"
+                         FontSize="13"/>
+                <TextBlock Text="Use {prompt} as a placeholder for your job prompts."
+                           FontSize="11" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,6,0,0"/>
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Test Result -->
+        <Border Grid.Row="4"
+                Background="{StaticResource HoverBrush}"
+                CornerRadius="8"
+                Padding="12"
+                Margin="0,0,0,16"
+                Visibility="{Binding HasTestResult, Converter={StaticResource BoolToVisibility}}">
+            <StackPanel>
+                <TextBlock FontWeight="SemiBold" Margin="0,0,0,4">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Text" Value="Test Failed"/>
+                            <Setter Property="Foreground" Value="{StaticResource ErrorBrush}"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding TestSuccess}" Value="True">
+                                    <Setter Property="Text" Value="Test Passed"/>
+                                    <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+                <TextBox Text="{Binding TestResult, Mode=OneWay}"
+                         IsReadOnly="True"
+                         TextWrapping="Wrap"
+                         MaxHeight="120"
+                         BorderThickness="0"
+                         Background="Transparent"
+                         FontFamily="{StaticResource MonoFont}"
+                         FontSize="11"
+                         VerticalScrollBarVisibility="Auto"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Loading -->
+        <StackPanel Grid.Row="4" Orientation="Horizontal"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Visibility="{Binding IsTesting, Converter={StaticResource BoolToVisibility}}">
+            <TextBlock Text="Testing command..." Foreground="{StaticResource TextSecondaryBrush}"/>
+        </StackPanel>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Style="{StaticResource SecondaryButton}"
+                    Command="{Binding TestCommand}" Margin="0,0,8,0">
+                <StackPanel Orientation="Horizontal">
+                    <fa:IconBlock Icon="Vial" Style="{StaticResource ButtonIcon}"/>
+                    <TextBlock Text="Test Command"/>
+                </StackPanel>
+            </Button>
+            <Button Style="{StaticResource PrimaryButton}"
+                    Command="{Binding SaveCommand}">
+                <StackPanel Orientation="Horizontal">
+                    <fa:IconBlock Icon="Save" Style="{StaticResource ButtonIcon}"/>
+                    <TextBlock Text="Save &amp; Continue"/>
+                </StackPanel>
+            </Button>
+        </StackPanel>
+    </Grid>
+</Window>

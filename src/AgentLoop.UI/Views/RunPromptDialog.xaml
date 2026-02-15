@@ -1,0 +1,54 @@
+<Window x:Class="AgentLoop.UI.Views.RunPromptDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:AgentLoop.UI.ViewModels"
+        xmlns:fa="clr-namespace:FontAwesome.Sharp;assembly=FontAwesome.Sharp"
+        Title="Adhoc Job"
+        Width="700" SizeToContent="Height"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen"
+        Style="{StaticResource ModernWindow}">
+    <Window.DataContext>
+        <vm:RunPromptViewModel/>
+    </Window.DataContext>
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <TextBlock Grid.Row="0" Text="Adhoc Job" Style="{StaticResource Heading}" Margin="0,0,0,16"/>
+
+        <!-- Prompt Input -->
+        <StackPanel Grid.Row="1" Margin="0,0,0,12">
+            <TextBlock Text="Enter your prompt" Style="{StaticResource SectionLabel}"/>
+            <TextBox Style="{StaticResource PromptTextBox}"
+                     Text="{Binding Prompt, UpdateSourceTrigger=PropertyChanged}"
+                     AcceptsReturn="True"
+                     TextWrapping="Wrap"
+                     Height="150"
+                     VerticalScrollBarVisibility="Auto"
+                     Padding="10,6"/>
+        </StackPanel>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,0">
+            <Button Style="{StaticResource PrimaryButton}"
+                    Command="{Binding RunCommand}" Margin="0,0,8,0">
+                <StackPanel Orientation="Horizontal">
+                    <fa:IconBlock Icon="Play" Style="{StaticResource ButtonIcon}"/>
+                    <TextBlock Text="Run"/>
+                </StackPanel>
+            </Button>
+            <Button Style="{StaticResource SecondaryButton}"
+                    Command="{Binding ClearCommand}">
+                <StackPanel Orientation="Horizontal">
+                    <fa:IconBlock Icon="Eraser" Style="{StaticResource ButtonIcon}"/>
+                    <TextBlock Text="Clear"/>
+                </StackPanel>
+            </Button>
+        </StackPanel>
+    </Grid>
+</Window>
