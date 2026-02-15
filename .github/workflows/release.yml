@@ -36,6 +36,8 @@ jobs:
         path: AgentLoop-win-${{ matrix.arch }}.zip
 
   release:
+    permissions:
+      contents: write
     needs: build
     runs-on: ubuntu-latest
     steps:
