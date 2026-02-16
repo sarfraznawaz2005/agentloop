@@ -267,9 +267,11 @@
                                                         <fa:IconBlock.Style>
                                                             <Style TargetType="fa:IconBlock">
                                                                 <Setter Property="Icon" Value="Heart"/>
+                                                                <Setter Property="IconFont" Value="Regular"/>
                                                                 <Setter Property="Foreground" Value="{StaticResource TextDisabledBrush}"/>
                                                                 <Style.Triggers>
                                                                     <DataTrigger Binding="{Binding IsFavorite}" Value="True">
+                                                                        <Setter Property="IconFont" Value="Solid"/>
                                                                         <Setter Property="Foreground" Value="#e91e63"/>
                                                                     </DataTrigger>
                                                                 </Style.Triggers>
