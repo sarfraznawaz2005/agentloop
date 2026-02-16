@@ -305,7 +305,7 @@ public partial class App : Application
             else
             {
                 // Fallback to ViewJobDialog if no logs found
-                var job = TaskSchedulerService.GetAllJobs().FirstOrDefault(j => j.Name == jobName);
+                var job = (await Task.Run(() => TaskSchedulerService.GetAllJobs())).FirstOrDefault(j => j.Name == jobName);
                 if (job != null)
                 {
                     var dialog = new ViewJobDialog(job);

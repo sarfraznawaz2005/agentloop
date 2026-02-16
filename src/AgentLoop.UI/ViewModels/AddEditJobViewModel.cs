@@ -470,7 +470,7 @@ public class AddEditJobViewModel : ViewModelBase
     {
         if (!CanSave) return;
 
-        var existingJobs = App.TaskSchedulerService.GetAllJobs();
+        var existingJobs = await Task.Run(() => App.TaskSchedulerService.GetAllJobs());
 
         if (!IsEditMode)
         {
