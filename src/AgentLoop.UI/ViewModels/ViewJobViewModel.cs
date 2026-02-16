@@ -65,6 +65,7 @@ public class ViewJobViewModel : ViewModelBase
     public ICommand LoadMoreCommand { get; }
     public ICommand ClearAllCommand { get; }
     public ICommand DeleteLogCommand { get; }
+    public ICommand ToggleFavoriteCommand { get; }
 
     public event Action? RequestBack;
     public event Action<LogEntry>? RequestViewLog;
@@ -81,6 +82,7 @@ public class ViewJobViewModel : ViewModelBase
         LoadMoreCommand = new RelayCommand(_ => LoadMore(), _ => HasMoreLogs);
         ClearAllCommand = new AsyncRelayCommand(_ => ClearAllLogsAsync());
         DeleteLogCommand = new AsyncRelayCommand(DeleteLogAsync);
+        ToggleFavoriteCommand = new AsyncRelayCommand(ToggleFavoriteAsync);
 
         _ = LoadDataAsync();
     }
@@ -141,6 +143,7 @@ public class ViewJobViewModel : ViewModelBase
         {
             "Success" => AllLogs.Where(l => l.Status == JobStatus.Success).ToList(),
             "Failed" => AllLogs.Where(l => l.Status == JobStatus.Failure).ToList(),
+            "Favorites" => AllLogs.Where(l => l.IsFavorite).ToList(),
             _ => AllLogs.ToList()
         };
 
@@ -191,7 +194,7 @@ public class ViewJobViewModel : ViewModelBase
     {
         var dialog = new ConfirmDialog(
             "Clear All Logs",
-            "Are you sure you want to delete all log files for this job?\n\nThis action cannot be undone.",
+            "Are you sure you want to delete all log entries for this job?\n\nFavorited logs will be preserved. This action cannot be undone.",
             true)
         { Owner = Application.Current.MainWindow };
 
@@ -199,6 +202,15 @@ public class ViewJobViewModel : ViewModelBase
 
         await App.LogService.ClearJobLogsAsync(_job.Name);
         App.AppLogService.LogInfo("LOGS_CLEARED", $"Cleared all logs for job: {_job.Name}");
+        await LoadDataAsync();
+    }
+
+    private async Task ToggleFavoriteAsync(object? parameter)
+    {
+        if (parameter is not LogEntry log || log.Id <= 0) return;
+
+        var newState = !log.IsFavorite;
+        await App.LogService.ToggleFavoriteAsync(log.Id, newState);
         await LoadDataAsync();
     }
 

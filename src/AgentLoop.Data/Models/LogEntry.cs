@@ -15,6 +15,7 @@ public class LogEntry
     public double DurationSeconds { get; set; }
     public string AgentName { get; set; } = string.Empty;
     public string LogFilePath { get; set; } = string.Empty;
+    public bool IsFavorite { get; set; }
 }
 
 public enum JobStatus

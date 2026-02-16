@@ -129,6 +129,7 @@ public class MainViewModel : ViewModelBase
     public ICommand ViewRecentLogCommand { get; }
     public ICommand RerunRecentLogCommand { get; }
     public ICommand DeleteRecentLogCommand { get; }
+    public ICommand ToggleFavoriteCommand { get; }
     public ICommand ToggleUpcomingRunsCommand { get; }
     public ICommand ToggleRunLogsCommand { get; }
 
@@ -172,6 +173,7 @@ public class MainViewModel : ViewModelBase
         ViewRecentLogCommand = new RelayCommand(OnViewRecentLog);
         RerunRecentLogCommand = new RelayCommand(OnRerunRecentLog);
         DeleteRecentLogCommand = new AsyncRelayCommand(DeleteRecentLogAsync);
+        ToggleFavoriteCommand = new AsyncRelayCommand(ToggleFavoriteAsync);
         ToggleUpcomingRunsCommand = new RelayCommand(_ => IsUpcomingRunsExpanded = !IsUpcomingRunsExpanded);
         ToggleRunLogsCommand = new RelayCommand(_ => IsRunLogsExpanded = !IsRunLogsExpanded);
 
@@ -308,6 +310,7 @@ public class MainViewModel : ViewModelBase
             "Failed" => (JobStatus?)JobStatus.Failure,
             _ => null
         };
+        bool? favoritesOnly = LogStatusFilter == "Favorites" ? true : null;
 
         // Process data off the UI thread
         var (upcoming, logs, totalCount) = await Task.Run(async () =>
@@ -329,14 +332,14 @@ public class MainViewModel : ViewModelBase
 
             if (string.IsNullOrWhiteSpace(searchText))
             {
-                resultLogs = await _logService.GetRecentLogsAsync(_recentLogsLoaded, statusFilter: statusFilter);
+                resultLogs = await _logService.GetRecentLogsAsync(_recentLogsLoaded, statusFilter: statusFilter, favoritesOnly: favoritesOnly);
             }
             else
             {
-                resultLogs = await _logService.SearchLogsAsync(searchText, 100, statusFilter);
+                resultLogs = await _logService.SearchLogsAsync(searchText, 100, statusFilter, favoritesOnly);
             }
 
-            var count = await _logService.GetRecentLogCountAsync(statusFilter);
+            var count = await _logService.GetRecentLogCountAsync(statusFilter, favoritesOnly);
 
             // Trace logging for troubleshooting real-time sync
             if (resultLogs.Any())
@@ -376,7 +379,7 @@ public class MainViewModel : ViewModelBase
     {
         var dialog = new ConfirmDialog(
             "Clear All Logs",
-            "Are you sure you want to delete all log files?\n\nThis action cannot be undone.",
+            "Are you sure you want to delete all log entries?\n\nFavorited logs will be preserved. This action cannot be undone.",
             true);
 
         if (Application.Current.MainWindow != null && Application.Current.MainWindow.IsVisible)
@@ -433,6 +436,16 @@ public class MainViewModel : ViewModelBase
 
         _appLogService.LogInfo("LOG_DELETE", $"Deleted log. ID: {logToDelete.Id}, Path: {logToDelete.LogFilePath}");
         await RefreshAsync();
+    }
+
+    private async Task ToggleFavoriteAsync(object? parameter)
+    {
+        if (parameter is not LogEntry log || log.Id <= 0) return;
+
+        var newState = !log.IsFavorite;
+        await _logService.ToggleFavoriteAsync(log.Id, newState);
+        log.IsFavorite = newState;
+        await RefreshUpcomingRunsAndLogsAsync(false);
     }
 
     private void ApplyJobFilter()

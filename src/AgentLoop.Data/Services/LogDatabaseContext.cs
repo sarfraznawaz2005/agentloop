@@ -49,12 +49,25 @@ public class LogDatabaseContext
                     StandardError TEXT,
                     DurationSeconds REAL,
                     AgentName TEXT,
-                    LogFilePath TEXT
+                    LogFilePath TEXT,
+                    IsFavorite INTEGER DEFAULT 0
                 );
                 CREATE INDEX IF NOT EXISTS idx_logs_jobname ON Logs(JobName);
                 CREATE INDEX IF NOT EXISTS idx_logs_starttime ON Logs(StartTime DESC);
             ";
             cmd.ExecuteNonQuery();
+        }
+
+        // Migration: add IsFavorite column to existing databases
+        try
+        {
+            using var alterCmd = connection.CreateCommand();
+            alterCmd.CommandText = "ALTER TABLE Logs ADD COLUMN IsFavorite INTEGER DEFAULT 0";
+            alterCmd.ExecuteNonQuery();
+        }
+        catch (SqliteException)
+        {
+            // Column already exists — safe to ignore
         }
     }
 

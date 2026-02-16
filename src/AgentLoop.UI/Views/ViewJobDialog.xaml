@@ -125,7 +125,7 @@
                 <Run Text=")" Foreground="{StaticResource TextSecondaryBrush}"/>
             </TextBlock>
             <ComboBox Grid.Column="1" Style="{StaticResource ModernComboBox}"
-                      Width="100" Height="28" FontSize="12"
+                      Width="110" Height="28" FontSize="12"
                       Padding="8,4"
                       SelectedValue="{Binding LogFilter}"
                       SelectedValuePath="Content" Margin="0,0,8,0"
@@ -133,6 +133,7 @@
                 <ComboBoxItem Content="All"/>
                 <ComboBoxItem Content="Success"/>
                 <ComboBoxItem Content="Failed"/>
+                <ComboBoxItem Content="Favorites"/>
             </ComboBox>
             <Button Grid.Column="2" Style="{StaticResource SecondaryButton}"
                     Command="{Binding ClearAllCommand}"
@@ -158,11 +159,19 @@
                           Grid.Row="0" ItemsSource="{Binding FilteredLogs}"
                           SelectedItem="{Binding SelectedLog}"
                           BorderThickness="0" Background="Transparent"
-                          ItemContainerStyle="{StaticResource ListViewItemStyle}"
                           GridViewColumnHeader.Click="GridViewColumnHeader_Click"
                           helpers:GridViewColumnStretch.Enabled="True"
                           MouseDoubleClick="RunHistoryList_MouseDoubleClick"
                           KeyDown="RunHistoryList_KeyDown">
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem" BasedOn="{StaticResource ListViewItemStyle}">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsFavorite}" Value="True">
+                                    <Setter Property="Background" Value="{StaticResource FavoriteBrush}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ListView.ItemContainerStyle>
                     <ListView.View>
                         <GridView ColumnHeaderContainerStyle="{StaticResource GridViewColumnHeader}">
                             <GridViewColumn Width="60" helpers:GridViewColumnSort.SortPropertyName="Status">
@@ -221,7 +230,7 @@
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
-                            <GridViewColumn Width="120">
+                            <GridViewColumn Width="150">
                                 <GridViewColumn.Header>
                                     <TextBlock Text="Actions" HorizontalAlignment="Stretch" TextAlignment="Center"/>
                                 </GridViewColumn.Header>
@@ -247,8 +256,31 @@
                                                 </Button>
                                                 <Button Style="{StaticResource IconButton}"
                                                         Padding="6,2" MinWidth="0" MinHeight="0"
+                                                        Command="{Binding DataContext.ToggleFavoriteCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                        CommandParameter="{Binding}"
+                                                        Margin="0,0,4,0"
+                                                        ToolTip="Favorite">
+                                                    <fa:IconBlock FontSize="12">
+                                                        <fa:IconBlock.Style>
+                                                            <Style TargetType="fa:IconBlock">
+                                                                <Setter Property="Icon" Value="Heart"/>
+                                                                <Setter Property="IconFont" Value="Regular"/>
+                                                                <Setter Property="Foreground" Value="{StaticResource TextDisabledBrush}"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsFavorite}" Value="True">
+                                                                        <Setter Property="IconFont" Value="Solid"/>
+                                                                        <Setter Property="Foreground" Value="#e91e63"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </fa:IconBlock.Style>
+                                                    </fa:IconBlock>
+                                                </Button>
+                                                <Button Style="{StaticResource IconButton}"
+                                                        Padding="6,2" MinWidth="0" MinHeight="0"
                                                         Command="{Binding DataContext.DeleteLogCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                                         CommandParameter="{Binding}"
+                                                        IsEnabled="{Binding IsFavorite, Converter={StaticResource InverseBool}}"
                                                         ToolTip="Delete">
                                                     <fa:IconBlock Icon="Trash" FontSize="12" Foreground="#ea4335"/>
                                                 </Button>

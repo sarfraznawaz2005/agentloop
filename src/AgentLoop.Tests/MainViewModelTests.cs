@@ -21,9 +21,9 @@ public class MainViewModelTests
         // Set up default returns to avoid null ref in InitializeAsync
         _taskSchedulerMock.Setup(s => s.IsServiceRunning()).Returns(true);
         _taskSchedulerMock.Setup(s => s.GetAllJobs()).Returns(new List<JobModel>());
-        _logServiceMock.Setup(s => s.GetRecentLogsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<JobStatus?>()))
+        _logServiceMock.Setup(s => s.GetRecentLogsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<JobStatus?>(), It.IsAny<bool?>()))
             .ReturnsAsync(new List<LogEntry>());
-        _logServiceMock.Setup(s => s.GetRecentLogCountAsync(It.IsAny<JobStatus?>()))
+        _logServiceMock.Setup(s => s.GetRecentLogCountAsync(It.IsAny<JobStatus?>(), It.IsAny<bool?>()))
             .ReturnsAsync(0);
     }
 

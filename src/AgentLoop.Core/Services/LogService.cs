@@ -25,13 +25,13 @@ public partial class LogService : ILogService
         using var cmd = connection.CreateCommand();
         cmd.CommandText = @"
             INSERT INTO Logs (
-                JobName, StartTime, EndTime, ExitCode, Status, 
-                Prompt, Command, StandardOutput, StandardError, 
-                DurationSeconds, AgentName, LogFilePath
+                JobName, StartTime, EndTime, ExitCode, Status,
+                Prompt, Command, StandardOutput, StandardError,
+                DurationSeconds, AgentName, LogFilePath, IsFavorite
             ) VALUES (
                 $jobName, $startTime, $endTime, $exitCode, $status,
                 $prompt, $command, $stdout, $stderr,
-                $duration, $agentName, $logPath
+                $duration, $agentName, $logPath, $isFavorite
             );
             SELECT last_insert_rowid();";
 
@@ -47,6 +47,7 @@ public partial class LogService : ILogService
         cmd.Parameters.AddWithValue("$duration", entry.DurationSeconds);
         cmd.Parameters.AddWithValue("$agentName", entry.AgentName);
         cmd.Parameters.AddWithValue("$logPath", entry.LogFilePath);
+        cmd.Parameters.AddWithValue("$isFavorite", entry.IsFavorite ? 1 : 0);
 
         var id = (long?)await cmd.ExecuteScalarAsync();
         if (id.HasValue) entry.Id = id.Value;
@@ -99,18 +100,26 @@ public partial class LogService : ILogService
         return entries;
     }
 
-    public async Task<List<LogEntry>> GetRecentLogsAsync(int count = 20, int offset = 0, JobStatus? statusFilter = null)
+    public async Task<List<LogEntry>> GetRecentLogsAsync(int count = 20, int offset = 0, JobStatus? statusFilter = null, bool? favoritesOnly = null)
     {
         var entries = new List<LogEntry>();
         using var connection = _dbContext.CreateConnection();
         using var cmd = connection.CreateCommand();
 
-        var where = statusFilter.HasValue ? "WHERE Status = $status " : "";
+        var conditions = new List<string>();
+        if (statusFilter.HasValue)
+        {
+            conditions.Add("Status = $status");
+            cmd.Parameters.AddWithValue("$status", (int)statusFilter.Value);
+        }
+        if (favoritesOnly == true)
+        {
+            conditions.Add("IsFavorite = 1");
+        }
+        var where = conditions.Count > 0 ? "WHERE " + string.Join(" AND ", conditions) + " " : "";
         cmd.CommandText = $"SELECT * FROM Logs {where}ORDER BY StartTime DESC, Id DESC LIMIT $count OFFSET $offset";
         cmd.Parameters.AddWithValue("$count", count);
         cmd.Parameters.AddWithValue("$offset", offset);
-        if (statusFilter.HasValue)
-            cmd.Parameters.AddWithValue("$status", (int)statusFilter.Value);
 
         using var reader = await cmd.ExecuteReaderAsync();
         while (await reader.ReadAsync())
@@ -120,26 +129,33 @@ public partial class LogService : ILogService
         return entries;
     }
 
-    public async Task<List<LogEntry>> SearchLogsAsync(string searchText, int count = 20, JobStatus? statusFilter = null)
+    public async Task<List<LogEntry>> SearchLogsAsync(string searchText, int count = 20, JobStatus? statusFilter = null, bool? favoritesOnly = null)
     {
         var entries = new List<LogEntry>();
         using var connection = _dbContext.CreateConnection();
         using var cmd = connection.CreateCommand();
 
-        var statusClause = statusFilter.HasValue ? "AND Status = $status " : "";
+        var extraClauses = "";
+        if (statusFilter.HasValue)
+        {
+            extraClauses += "AND Status = $status ";
+            cmd.Parameters.AddWithValue("$status", (int)statusFilter.Value);
+        }
+        if (favoritesOnly == true)
+        {
+            extraClauses += "AND IsFavorite = 1 ";
+        }
         cmd.CommandText = $@"
             SELECT * FROM Logs
             WHERE (JobName LIKE $search
                OR StandardOutput LIKE $search
                OR Prompt LIKE $search)
-            {statusClause}
+            {extraClauses}
             ORDER BY StartTime DESC, Id DESC
             LIMIT $count";
 
         cmd.Parameters.AddWithValue("$search", $"%{searchText}%");
         cmd.Parameters.AddWithValue("$count", count);
-        if (statusFilter.HasValue)
-            cmd.Parameters.AddWithValue("$status", (int)statusFilter.Value);
 
         using var reader = await cmd.ExecuteReaderAsync();
         while (await reader.ReadAsync())
@@ -158,20 +174,24 @@ public partial class LogService : ILogService
         return Convert.ToInt32(await cmd.ExecuteScalarAsync());
     }
 
-    public async Task<int> GetRecentLogCountAsync(JobStatus? statusFilter = null)
+    public async Task<int> GetRecentLogCountAsync(JobStatus? statusFilter = null, bool? favoritesOnly = null)
     {
         using var connection = _dbContext.CreateConnection();
         using var cmd = connection.CreateCommand();
 
+        var conditions = new List<string>();
         if (statusFilter.HasValue)
         {
-            cmd.CommandText = "SELECT COUNT(*) FROM Logs WHERE Status = $status";
+            conditions.Add("Status = $status");
             cmd.Parameters.AddWithValue("$status", (int)statusFilter.Value);
         }
-        else
+        if (favoritesOnly == true)
         {
-            cmd.CommandText = "SELECT COUNT(*) FROM Logs";
+            conditions.Add("IsFavorite = 1");
         }
+        cmd.CommandText = conditions.Count > 0
+            ? $"SELECT COUNT(*) FROM Logs WHERE {string.Join(" AND ", conditions)}"
+            : "SELECT COUNT(*) FROM Logs";
 
         return Convert.ToInt32(await cmd.ExecuteScalarAsync());
     }
@@ -226,7 +246,7 @@ public partial class LogService : ILogService
     {
         using var connection = _dbContext.CreateConnection();
         using var cmd = connection.CreateCommand();
-        cmd.CommandText = "DELETE FROM Logs WHERE JobName = $jobName";
+        cmd.CommandText = "DELETE FROM Logs WHERE JobName = $jobName AND IsFavorite = 0";
         cmd.Parameters.AddWithValue("$jobName", jobName);
         await cmd.ExecuteNonQueryAsync();
     }
@@ -235,7 +255,7 @@ public partial class LogService : ILogService
     {
         using var connection = _dbContext.CreateConnection();
         using var cmd = connection.CreateCommand();
-        cmd.CommandText = "DELETE FROM Logs";
+        cmd.CommandText = "DELETE FROM Logs WHERE IsFavorite = 0";
         await cmd.ExecuteNonQueryAsync();
     }
 
@@ -251,8 +271,18 @@ public partial class LogService : ILogService
     {
         using var connection = _dbContext.CreateConnection();
         using var cmd = connection.CreateCommand();
-        cmd.CommandText = "DELETE FROM Logs WHERE StartTime < $cutoff";
+        cmd.CommandText = "DELETE FROM Logs WHERE StartTime < $cutoff AND IsFavorite = 0";
         cmd.Parameters.AddWithValue("$cutoff", DateTime.Now.AddDays(-retentionDays).ToString("o"));
+        await cmd.ExecuteNonQueryAsync();
+    }
+
+    public async Task ToggleFavoriteAsync(long id, bool isFavorite)
+    {
+        using var connection = _dbContext.CreateConnection();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = "UPDATE Logs SET IsFavorite = $fav WHERE Id = $id";
+        cmd.Parameters.AddWithValue("$fav", isFavorite ? 1 : 0);
+        cmd.Parameters.AddWithValue("$id", id);
         await cmd.ExecuteNonQueryAsync();
     }
 
@@ -282,7 +312,8 @@ public partial class LogService : ILogService
             StandardError = reader.IsDBNull(reader.GetOrdinal("StandardError")) ? "" : reader.GetString(reader.GetOrdinal("StandardError")),
             DurationSeconds = reader.IsDBNull(reader.GetOrdinal("DurationSeconds")) ? 0 : reader.GetDouble(reader.GetOrdinal("DurationSeconds")),
             AgentName = reader.IsDBNull(reader.GetOrdinal("AgentName")) ? "" : reader.GetString(reader.GetOrdinal("AgentName")),
-            LogFilePath = reader.IsDBNull(reader.GetOrdinal("LogFilePath")) ? "" : reader.GetString(reader.GetOrdinal("LogFilePath"))
+            LogFilePath = reader.IsDBNull(reader.GetOrdinal("LogFilePath")) ? "" : reader.GetString(reader.GetOrdinal("LogFilePath")),
+            IsFavorite = !reader.IsDBNull(reader.GetOrdinal("IsFavorite")) && reader.GetInt32(reader.GetOrdinal("IsFavorite")) == 1
         };
     }
 
