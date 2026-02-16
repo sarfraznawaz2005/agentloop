@@ -563,7 +563,7 @@
 
                 <!-- Task Scheduler Status -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal">
-                    <Ellipse Width="8" Height="8" Margin="0,0,0,0" VerticalAlignment="Center">
+                    <Ellipse Width="8" Height="8" Margin="0,0,8,0" VerticalAlignment="Center">
                         <Ellipse.Style>
                             <Style TargetType="Ellipse">
                                 <Setter Property="Fill" Value="{StaticResource AccentBrush}"/>
