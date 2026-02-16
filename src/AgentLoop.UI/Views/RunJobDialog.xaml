@@ -26,11 +26,12 @@
             <StackPanel>
                 <TextBlock Text="{Binding JobName}" Style="{StaticResource Heading}"/>
                 <TextBlock Text="{Binding Prompt}" Foreground="{StaticResource TextSecondaryBrush}"
+                           TextWrapping="Wrap" MaxHeight="70"
                            TextTrimming="CharacterEllipsis"/>
             </StackPanel>
 
             <!-- Status -->
-            <Border Grid.Column="1" Padding="12,6" CornerRadius="16">
+            <Border Grid.Column="1" Padding="12,6" CornerRadius="16" VerticalAlignment="Top">
                 <Border.Style>
                     <Style TargetType="Border">
                         <Setter Property="Background" Value="{StaticResource PrimaryLightBrush}"/>

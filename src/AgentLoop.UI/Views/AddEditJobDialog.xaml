@@ -5,7 +5,7 @@
         xmlns:vm="clr-namespace:AgentLoop.UI.ViewModels"
         xmlns:models="clr-namespace:AgentLoop.Data.Models;assembly=AgentLoop.Data"
         Title="{Binding WindowTitle}"
-        Width="700" Height="750"
+        Width="700"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
         Style="{StaticResource ModernWindow}">
