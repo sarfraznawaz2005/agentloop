@@ -25,9 +25,10 @@
 
             <StackPanel>
                 <TextBlock Text="{Binding JobName}" Style="{StaticResource Heading}"/>
-                <TextBlock Text="{Binding Prompt}" Foreground="{StaticResource TextSecondaryBrush}"
-                           TextWrapping="Wrap" MaxHeight="70"
-                           TextTrimming="CharacterEllipsis"/>
+                <TextBlock Text="{Binding Prompt, Converter={StaticResource SingleLine}}" Foreground="{StaticResource TextSecondaryBrush}"
+                           TextWrapping="NoWrap"
+                           TextTrimming="CharacterEllipsis"
+                           MaxHeight="20"/>
             </StackPanel>
 
             <!-- Status -->

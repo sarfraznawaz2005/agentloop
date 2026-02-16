@@ -38,9 +38,10 @@
                            Style="{StaticResource Heading}" Margin="0,0,0,8"/>
 
                 <!-- Prompt -->
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding Prompt}"
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding Prompt, Converter={StaticResource SingleLine}}"
                            Foreground="{StaticResource TextSecondaryBrush}"
-                           TextWrapping="Wrap" MaxHeight="40" Margin="0,0,0,12"/>
+                           TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" 
+                           MaxHeight="20" Margin="0,0,0,12"/>
 
                 <!-- Agent Override -->
                 <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal" Margin="0,0,0,4"

@@ -21,6 +21,7 @@
             <converters:JobScheduleConverter x:Key="JobSchedule"/>
             <converters:NullToVisibilityConverter x:Key="NullToVisibility"/>
             <converters:StringEqualsConverter x:Key="StringEqualsConverter"/>
+            <converters:SingleLineConverter x:Key="SingleLine"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>
