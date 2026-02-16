@@ -100,9 +100,9 @@ public class TaskSchedulerService : ITaskSchedulerService
                 });
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // Folder may not exist yet or other COM error
+            System.Diagnostics.Trace.WriteLine($"[TaskSchedulerService] GetAllJobs failed: {ex}");
         }
         return jobs;
     }

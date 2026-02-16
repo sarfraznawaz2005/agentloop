@@ -277,11 +277,14 @@ public class MainViewModel : ViewModelBase
 
             IsTaskSchedulerRunning = isServiceRunning;
 
-            // Update Jobs collection on UI thread
+            // Update Jobs collection on UI thread, preserving selection
             await Application.Current.Dispatcher.InvokeAsync(() =>
             {
+                var previousSelection = SelectedJob?.Name;
                 UpdateCollection(Jobs, allJobs, (j1, j2) => j1.Name == j2.Name);
                 ApplyJobFilter();
+                if (previousSelection != null)
+                    SelectedJob = FilteredJobs.FirstOrDefault(j => j.Name == previousSelection);
                 OnPropertyChanged(nameof(ActiveJobCount));
             });
 
