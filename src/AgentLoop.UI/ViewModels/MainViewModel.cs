@@ -362,7 +362,7 @@ public class MainViewModel : ViewModelBase
             "Clear All Logs",
             "Are you sure you want to delete all log files?\n\nThis action cannot be undone.",
             true);
-        
+
         if (Application.Current.MainWindow != null && Application.Current.MainWindow.IsVisible)
         {
             dialog.Owner = Application.Current.MainWindow;
@@ -402,7 +402,7 @@ public class MainViewModel : ViewModelBase
             "Delete Log",
             "Are you sure you want to delete this log entry?",
             true);
-            
+
         if (Application.Current.MainWindow != null && Application.Current.MainWindow.IsVisible)
         {
             dialog.Owner = Application.Current.MainWindow;
