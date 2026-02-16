@@ -197,11 +197,14 @@
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
-                            <GridViewColumn Header="Start Time" Width="280" helpers:GridViewColumnSort.SortPropertyName="StartTime" helpers:GridViewColumnStretch.StretchColumn="True">
+                            <GridViewColumn Width="280" helpers:GridViewColumnSort.SortPropertyName="StartTime" helpers:GridViewColumnStretch.StretchColumn="True">
+                                <GridViewColumn.Header>
+                                    <TextBlock Text="Start Time" HorizontalAlignment="Stretch" TextAlignment="Center"/>
+                                </GridViewColumn.Header>
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
-                                        <Grid Height="20" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding StartTime, StringFormat='{}{0:MMM dd, yyyy HH:mm}'}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" FontSize="12" TextAlignment="Left"/>
+                                        <Grid Height="20" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                            <TextBlock Text="{Binding StartTime, StringFormat='{}{0:MMM dd, yyyy HH:mm}'}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" FontSize="12" TextAlignment="Center"/>
                                         </Grid>
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
@@ -264,11 +267,9 @@
                                                         <fa:IconBlock.Style>
                                                             <Style TargetType="fa:IconBlock">
                                                                 <Setter Property="Icon" Value="Heart"/>
-                                                                <Setter Property="IconFont" Value="Regular"/>
                                                                 <Setter Property="Foreground" Value="{StaticResource TextDisabledBrush}"/>
                                                                 <Style.Triggers>
                                                                     <DataTrigger Binding="{Binding IsFavorite}" Value="True">
-                                                                        <Setter Property="IconFont" Value="Solid"/>
                                                                         <Setter Property="Foreground" Value="#e91e63"/>
                                                                     </DataTrigger>
                                                                 </Style.Triggers>
