@@ -648,7 +648,11 @@ public partial class App : Application
         var settingsItem = new System.Windows.Controls.MenuItem { Header = "Settings" };
         settingsItem.Click += (_, _) =>
         {
-            var dialog = new Views.SettingsDialog { Owner = _mainWindow };
+            var dialog = new Views.SettingsDialog();
+            if (_mainWindow != null && _mainWindow.IsVisible)
+            {
+                dialog.Owner = _mainWindow;
+            }
             dialog.ShowDialog();
         };
         menu.Items.Add(settingsItem);
@@ -668,7 +672,11 @@ public partial class App : Application
         var runPromptItem = new System.Windows.Controls.MenuItem { Header = "Adhoc Job" };
         runPromptItem.Click += (_, _) =>
         {
-            var dialog = new Views.RunPromptDialog { Owner = _mainWindow };
+            var dialog = new Views.RunPromptDialog();
+            if (_mainWindow != null && _mainWindow.IsVisible)
+            {
+                dialog.Owner = _mainWindow;
+            }
             dialog.ShowDialog();
         };
         menu.Items.Add(runPromptItem);
@@ -678,7 +686,11 @@ public partial class App : Application
         var aboutItem = new System.Windows.Controls.MenuItem { Header = "About" };
         aboutItem.Click += (_, _) =>
         {
-            var dialog = new Views.AboutDialog { Owner = _mainWindow };
+            var dialog = new Views.AboutDialog();
+            if (_mainWindow != null && _mainWindow.IsVisible)
+            {
+                dialog.Owner = _mainWindow;
+            }
             dialog.ShowDialog();
         };
         menu.Items.Add(aboutItem);
