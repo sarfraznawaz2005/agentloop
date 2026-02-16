@@ -34,7 +34,7 @@ public static class AgentHelper
         {
             var exeName = System.IO.Path.GetFileNameWithoutExtension(firstPart);
             if (string.IsNullOrEmpty(exeName)) return "Custom";
-            
+
             // Capitalize first letter
             return char.ToUpper(exeName[0]) + exeName[1..].ToLower();
         }

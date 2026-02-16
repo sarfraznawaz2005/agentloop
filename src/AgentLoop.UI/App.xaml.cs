@@ -446,7 +446,7 @@ public partial class App : Application
                     AppLogService.LogInfo("NOTIFICATION_SKIP", $"Skipping notification for '{log.JobName}': Job not found in Task Scheduler");
                     continue;
                 }
-                
+
                 if (job.Silent)
                 {
                     AppLogService.LogInfo("NOTIFICATION_SKIP", $"Skipping notification for '{log.JobName}': Job is marked as Silent");
