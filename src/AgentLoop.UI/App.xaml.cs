@@ -280,7 +280,7 @@ public partial class App : Application
         }, e.CustomColor, e.CustomIcon);
 
         // Refresh Main Window if it's open
-        Current.Dispatcher.Invoke(() =>
+        _ = Current.Dispatcher.BeginInvoke(() =>
         {
             if (_mainWindow?.DataContext is MainViewModel mainVm)
             {
@@ -289,30 +289,37 @@ public partial class App : Application
         });
     }
 
-    private static void OnNotificationClicked(object? sender, string jobName)
+    private static async void OnNotificationClicked(object? sender, string jobName)
     {
-        Current.Dispatcher.Invoke(async () =>
+        try
         {
-            // Find the latest log for this job and open LogViewerDialog
-            var logs = await LogService.GetJobLogsAsync(jobName);
-            var latestLog = logs.OrderByDescending(l => l.StartTime).FirstOrDefault();
+            await Current.Dispatcher.InvokeAsync(async () =>
+            {
+                // Find the latest log for this job and open LogViewerDialog
+                var logs = await LogService.GetJobLogsAsync(jobName);
+                var latestLog = logs.OrderByDescending(l => l.StartTime).FirstOrDefault();
 
-            if (latestLog != null)
-            {
-                var dialog = new LogViewerDialog(latestLog);
-                dialog.Show();
-            }
-            else
-            {
-                // Fallback to ViewJobDialog if no logs found
-                var job = (await Task.Run(() => TaskSchedulerService.GetAllJobs())).FirstOrDefault(j => j.Name == jobName);
-                if (job != null)
+                if (latestLog != null)
                 {
-                    var dialog = new ViewJobDialog(job);
+                    var dialog = new LogViewerDialog(latestLog);
                     dialog.Show();
                 }
-            }
-        });
+                else
+                {
+                    // Fallback to ViewJobDialog if no logs found
+                    var job = (await Task.Run(() => TaskSchedulerService.GetAllJobs())).FirstOrDefault(j => j.Name == jobName);
+                    if (job != null)
+                    {
+                        var dialog = new ViewJobDialog(job);
+                        dialog.Show();
+                    }
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            AppLogService?.LogError(ex, "Error handling notification click");
+        }
     }
 
     private static void StartLogMaintenance()
@@ -599,7 +606,7 @@ public partial class App : Application
                         $"Detected external changes: {added.Count} added, {removed.Count} removed");
 
                     // Refresh the main window if it exists
-                    Current.Dispatcher.Invoke(() =>
+                    _ = Current.Dispatcher.BeginInvoke(() =>
                     {
                         if (_mainWindow?.DataContext is MainViewModel vm)
                             _ = vm.RefreshAsync();
