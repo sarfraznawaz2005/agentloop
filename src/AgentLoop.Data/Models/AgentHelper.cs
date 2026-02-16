@@ -33,7 +33,10 @@ public static class AgentHelper
         try
         {
             var exeName = System.IO.Path.GetFileNameWithoutExtension(firstPart);
-            return string.IsNullOrEmpty(exeName) ? "Custom" : exeName;
+            if (string.IsNullOrEmpty(exeName)) return "Custom";
+            
+            // Capitalize first letter
+            return char.ToUpper(exeName[0]) + exeName[1..].ToLower();
         }
         catch
         {

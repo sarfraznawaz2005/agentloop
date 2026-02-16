@@ -435,8 +435,18 @@ public partial class App : Application
             {
                 _lastProcessedLogId = Math.Max(_lastProcessedLogId, log.Id);
 
-                var job = allJobs.FirstOrDefault(j => j.Name == log.JobName);
-                if (job == null || job.Silent) continue;
+                var job = allJobs.FirstOrDefault(j => j.Name.Trim().Equals(log.JobName.Trim(), StringComparison.OrdinalIgnoreCase));
+                if (job == null)
+                {
+                    AppLogService.LogInfo("NOTIFICATION_SKIP", $"Skipping notification for '{log.JobName}': Job not found in Task Scheduler");
+                    continue;
+                }
+                
+                if (job.Silent)
+                {
+                    AppLogService.LogInfo("NOTIFICATION_SKIP", $"Skipping notification for '{log.JobName}': Job is marked as Silent");
+                    continue;
+                }
 
                 var checkSuccess = Settings.NotificationOnSuccess;
                 var checkFailure = Settings.NotificationOnFailure;
@@ -446,11 +456,17 @@ public partial class App : Application
 
                 if (isSuccess && checkSuccess)
                 {
+                    AppLogService.LogInfo("NOTIFICATION_SHOW", $"Showing success notification for '{log.JobName}'");
                     NotificationService.ShowSuccess(log.JobName, $"Completed successfully in {log.DurationSeconds:F1}s", outputPreview, job.HexColor, job.Icon);
                 }
                 else if (!isSuccess && checkFailure)
                 {
+                    AppLogService.LogInfo("NOTIFICATION_SHOW", $"Showing failure notification for '{log.JobName}' (Exit: {log.ExitCode})");
                     NotificationService.ShowError(log.JobName, $"Failed with exit code {log.ExitCode}", outputPreview, job.HexColor, job.Icon);
+                }
+                else
+                {
+                    AppLogService.LogInfo("NOTIFICATION_SKIP", $"Skipping notification for '{log.JobName}': Not configured for {(isSuccess ? "success" : "failure")}");
                 }
 
                 _ = SaveJobResultToFileAsync(log.JobName, log);

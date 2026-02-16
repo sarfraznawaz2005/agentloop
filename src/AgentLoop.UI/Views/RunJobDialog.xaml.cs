@@ -8,10 +8,10 @@ public partial class RunJobDialog : Window
 {
     private readonly RunJobViewModel _viewModel;
 
-    public RunJobDialog(string jobName, string prompt)
+    public RunJobDialog(string jobName, string prompt, string? agentOverride = null)
     {
         InitializeComponent();
-        _viewModel = new RunJobViewModel(jobName, prompt);
+        _viewModel = new RunJobViewModel(jobName, prompt, agentOverride);
         DataContext = _viewModel;
 
         _viewModel.RequestClose += Close;
@@ -20,7 +20,7 @@ public partial class RunJobDialog : Window
         Loaded += async (_, _) => await _viewModel.RunAsync();
     }
 
-    public RunJobDialog(JobModel job) : this(job.Name, job.Prompt) { }
+    public RunJobDialog(JobModel job) : this(job.Name, job.Prompt, job.AgentOverride) { }
 
     private void OnViewLog(LogEntry log)
     {

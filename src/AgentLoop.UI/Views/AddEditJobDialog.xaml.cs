@@ -21,10 +21,10 @@ public partial class AddEditJobDialog : Window
                 Close();
             };
 
-            vm.RequestTestRun += prompt =>
+            vm.RequestTestRun += (prompt, agentOverride) =>
             {
-                // Open RunJobDialog with the test prompt
-                var runJobDialog = new RunJobDialog("(Test Run)", prompt) { Owner = this };
+                // Open RunJobDialog with the test prompt and agent override
+                var runJobDialog = new RunJobDialog("(Test Run)", prompt, agentOverride) { Owner = this };
                 runJobDialog.ShowDialog();
             };
         }

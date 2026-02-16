@@ -292,7 +292,7 @@ public class AddEditJobViewModel : ViewModelBase
     public ICommand TestRunCommand { get; }
 
     public event Action<bool>? RequestClose;
-    public event Action<string>? RequestTestRun;
+    public event Action<string, string?>? RequestTestRun;
 
     public AddEditJobViewModel() : this(null) { }
 
@@ -533,8 +533,8 @@ public class AddEditJobViewModel : ViewModelBase
 
     private async Task TestRunAsync()
     {
-        // Raise event to open Run Job dialog with the current prompt
-        RequestTestRun?.Invoke(Prompt);
+        // Raise event to open Run Job dialog with the current prompt and agent override
+        RequestTestRun?.Invoke(Prompt, UseGlobalAgentCommand ? null : AgentOverride);
         await Task.CompletedTask;
     }
 }

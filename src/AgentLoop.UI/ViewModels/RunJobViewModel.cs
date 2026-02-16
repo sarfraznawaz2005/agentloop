@@ -61,10 +61,13 @@ public class RunJobViewModel : ViewModelBase
     public event Action? RequestClose;
     public event Action<LogEntry>? RequestViewLog;
 
-    public RunJobViewModel(string jobName, string prompt)
+    private readonly string? _agentOverride;
+
+    public RunJobViewModel(string jobName, string prompt, string? agentOverride = null)
     {
         _jobName = jobName;
         _prompt = prompt;
+        _agentOverride = agentOverride;
 
         CancelCommand = new RelayCommand(_ => Cancel(), _ => IsRunning);
         CloseCommand = new RelayCommand(_ => RequestClose?.Invoke());
@@ -88,8 +91,8 @@ public class RunJobViewModel : ViewModelBase
             // Start elapsed timer
             var timerTask = UpdateElapsedAsync(_cts.Token);
 
-            var command = App.AgentCommandService.SubstitutePrompt(
-                App.Settings.AgentCommand, _prompt);
+            var agentCommand = _agentOverride ?? App.Settings.AgentCommand;
+            var command = App.AgentCommandService.SubstitutePrompt(agentCommand, _prompt);
 
             // Execute command with live output
             var (executable, arguments) = Core.Services.AgentCommandService.ParseCommand(command);

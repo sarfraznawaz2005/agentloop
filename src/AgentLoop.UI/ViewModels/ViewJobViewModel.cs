@@ -19,7 +19,9 @@ public class ViewJobViewModel : ViewModelBase
 
     public string JobName => _job.Name;
     public string Prompt => _job.Prompt;
-    public string? AgentOverride => _job.AgentOverride;
+    public string? AgentOverride => string.IsNullOrWhiteSpace(_job.AgentOverride) 
+        ? null 
+        : char.ToUpper(_job.AgentOverride[0]) + _job.AgentOverride[1..].ToLower();
     public string ScheduleDescription => GetScheduleDescription();
     public DateTime? NextRun { get; private set; }
     public DateTime? LastRun { get; private set; }

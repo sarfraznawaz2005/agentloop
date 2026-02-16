@@ -27,8 +27,8 @@ public static class CustomNotificationManager
             window.Show();
             Rearrange();
 
-            // Auto close after 15 seconds
-            var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(15) };
+            // Auto close after 10 seconds
+            var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(10) };
             timer.Tick += (s, e) =>
             {
                 timer.Stop();
