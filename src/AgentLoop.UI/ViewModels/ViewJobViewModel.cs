@@ -111,8 +111,12 @@ public class ViewJobViewModel : ViewModelBase
 
     private async Task LoadDataAsync()
     {
-        NextRun = App.TaskSchedulerService.GetNextRunTime(_job.Name);
-        LastRun = App.TaskSchedulerService.GetLastRunTime(_job.Name);
+        var (nextRun, lastRun) = await Task.Run(() =>
+            (App.TaskSchedulerService.GetNextRunTime(_job.Name),
+             App.TaskSchedulerService.GetLastRunTime(_job.Name)));
+
+        NextRun = nextRun;
+        LastRun = lastRun;
 
         OnPropertyChanged(nameof(NextRun));
         OnPropertyChanged(nameof(LastRun));

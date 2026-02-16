@@ -100,7 +100,11 @@ public partial class App : Application
         };
 
         InitializeServices();
-        _lastProcessedLogId = LogService.GetLastLogIdAsync().GetAwaiter().GetResult();
+
+        // Run on thread pool to avoid potential deadlock from sync-over-async on UI thread.
+        // The SynchronizationContext capture in GetLastLogIdAsync would deadlock if awaited
+        // via .GetAwaiter().GetResult() directly on the dispatcher thread.
+        _lastProcessedLogId = Task.Run(() => LogService.GetLastLogIdAsync()).GetAwaiter().GetResult();
 
         ConfigService.UpdateStartupRegistration(Settings.StartWithWindows);
         InitializeTrayIcon();

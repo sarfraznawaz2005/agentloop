@@ -113,35 +113,36 @@ public class TaskSchedulerService : ITaskSchedulerService
         ArgumentException.ThrowIfNullOrWhiteSpace(job.Name, nameof(job.Name));
         ArgumentNullException.ThrowIfNull(job.Schedule, nameof(job.Schedule));
 
-        using var ts = new TaskService();
-        var td = ts.NewTask();
-        if (td == null)
-            throw new InvalidOperationException("Failed to create task definition.");
-
-        td.RegistrationInfo.Description = JobMetadataHelper.Encode(job);
-        td.Settings.StartWhenAvailable = true;
-        td.Settings.DisallowStartIfOnBatteries = false;
-        td.Settings.StopIfGoingOnBatteries = false;
-        td.Settings.ExecutionTimeLimit = TimeSpan.FromHours(1);
-
-        AddTriggers(td, job.Schedule);
-        AddAction(td, job);
-
-        var folder = GetOrCreateFolder(ts);
-
-        if (folder == null)
-            throw new InvalidOperationException($"Failed to get or create Task Scheduler folder '{_taskFolder}'.");
-
-        folder.RegisterTaskDefinition(job.Name, td);
-
-        if (!job.Enabled)
+        return Task.Run(() =>
         {
-            var registeredTask = folder.GetTasks().FirstOrDefault(t => t.Name == job.Name);
-            if (registeredTask != null)
-                registeredTask.Enabled = false;
-        }
+            using var ts = new TaskService();
+            var td = ts.NewTask();
+            if (td == null)
+                throw new InvalidOperationException("Failed to create task definition.");
 
-        return Task.CompletedTask;
+            td.RegistrationInfo.Description = JobMetadataHelper.Encode(job);
+            td.Settings.StartWhenAvailable = true;
+            td.Settings.DisallowStartIfOnBatteries = false;
+            td.Settings.StopIfGoingOnBatteries = false;
+            td.Settings.ExecutionTimeLimit = TimeSpan.FromHours(1);
+
+            AddTriggers(td, job.Schedule);
+            AddAction(td, job);
+
+            var folder = GetOrCreateFolder(ts);
+
+            if (folder == null)
+                throw new InvalidOperationException($"Failed to get or create Task Scheduler folder '{_taskFolder}'.");
+
+            folder.RegisterTaskDefinition(job.Name, td);
+
+            if (!job.Enabled)
+            {
+                var registeredTask = folder.GetTasks().FirstOrDefault(t => t.Name == job.Name);
+                if (registeredTask != null)
+                    registeredTask.Enabled = false;
+            }
+        });
     }
 
     public Task UpdateJobAsync(JobModel job)
@@ -151,72 +152,81 @@ public class TaskSchedulerService : ITaskSchedulerService
 
     public Task UpdateJobAsync(string originalName, JobModel job)
     {
-        using var ts = new TaskService();
-        var folder = GetOrCreateFolder(ts);
-        var existingTask = folder.GetTasks().FirstOrDefault(t => t.Name == originalName);
-
-        if (existingTask == null)
-            throw new InvalidOperationException($"Task '{originalName}' not found.");
-
-        var td = existingTask.Definition;
-        td.RegistrationInfo.Description = JobMetadataHelper.Encode(job);
-        td.Settings.ExecutionTimeLimit = TimeSpan.FromHours(1);
-
-        td.Triggers.Clear();
-        AddTriggers(td, job.Schedule);
-
-        td.Actions.Clear();
-        AddAction(td, job);
-
-        folder.RegisterTaskDefinition(job.Name, td);
-
-        if (originalName != job.Name)
+        return Task.Run(() =>
         {
-            folder.DeleteTask(originalName, false);
+            using var ts = new TaskService();
+            var folder = GetOrCreateFolder(ts);
+            var existingTask = folder.GetTasks().FirstOrDefault(t => t.Name == originalName);
+
+            if (existingTask == null)
+                throw new InvalidOperationException($"Task '{originalName}' not found.");
+
+            var td = existingTask.Definition;
+            td.RegistrationInfo.Description = JobMetadataHelper.Encode(job);
+            td.Settings.ExecutionTimeLimit = TimeSpan.FromHours(1);
+
+            td.Triggers.Clear();
+            AddTriggers(td, job.Schedule);
+
+            td.Actions.Clear();
+            AddAction(td, job);
+
             folder.RegisterTaskDefinition(job.Name, td);
-        }
 
-        var updatedTask = folder.GetTasks().FirstOrDefault(t => t.Name == job.Name);
-        if (updatedTask != null)
-            updatedTask.Enabled = job.Enabled;
+            if (originalName != job.Name)
+            {
+                folder.DeleteTask(originalName, false);
+                folder.RegisterTaskDefinition(job.Name, td);
+            }
 
-        return Task.CompletedTask;
+            var updatedTask = folder.GetTasks().FirstOrDefault(t => t.Name == job.Name);
+            if (updatedTask != null)
+                updatedTask.Enabled = job.Enabled;
+        });
     }
 
     public Task DeleteJobAsync(string jobName)
     {
-        using var ts = new TaskService();
-        var folder = GetOrCreateFolder(ts);
-        folder.DeleteTask(jobName, false);
-        return Task.CompletedTask;
+        return Task.Run(() =>
+        {
+            using var ts = new TaskService();
+            var folder = GetOrCreateFolder(ts);
+            folder.DeleteTask(jobName, false);
+        });
     }
 
     public Task SetJobEnabledAsync(string jobName, bool enabled)
     {
-        using var ts = new TaskService();
-        var folder = GetOrCreateFolder(ts);
-        var task = folder.GetTasks().FirstOrDefault(t => t.Name == jobName);
-        if (task != null)
-            task.Enabled = enabled;
-        return Task.CompletedTask;
+        return Task.Run(() =>
+        {
+            using var ts = new TaskService();
+            var folder = GetOrCreateFolder(ts);
+            var task = folder.GetTasks().FirstOrDefault(t => t.Name == jobName);
+            if (task != null)
+                task.Enabled = enabled;
+        });
     }
 
     public Task PauseAllJobsAsync()
     {
-        using var ts = new TaskService();
-        var folder = GetOrCreateFolder(ts);
-        foreach (var task in folder.GetTasks())
-            task.Enabled = false;
-        return Task.CompletedTask;
+        return Task.Run(() =>
+        {
+            using var ts = new TaskService();
+            var folder = GetOrCreateFolder(ts);
+            foreach (var task in folder.GetTasks())
+                task.Enabled = false;
+        });
     }
 
     public Task ResumeAllJobsAsync()
     {
-        using var ts = new TaskService();
-        var folder = GetOrCreateFolder(ts);
-        foreach (var task in folder.GetTasks())
-            task.Enabled = true;
-        return Task.CompletedTask;
+        return Task.Run(() =>
+        {
+            using var ts = new TaskService();
+            var folder = GetOrCreateFolder(ts);
+            foreach (var task in folder.GetTasks())
+                task.Enabled = true;
+        });
     }
 
     public void UpdateAgentCommand(string newCommand)
