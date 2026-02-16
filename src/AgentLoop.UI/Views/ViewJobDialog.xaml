@@ -125,8 +125,11 @@
                 <Run Text=")" Foreground="{StaticResource TextSecondaryBrush}"/>
             </TextBlock>
             <ComboBox Grid.Column="1" Style="{StaticResource ModernComboBox}"
-                      Width="120" SelectedValue="{Binding LogFilter}"
-                      SelectedValuePath="Content" Margin="0,0,8,0">
+                      Width="100" Height="28" FontSize="12"
+                      Padding="8,4"
+                      SelectedValue="{Binding LogFilter}"
+                      SelectedValuePath="Content" Margin="0,0,8,0"
+                      VerticalAlignment="Center">
                 <ComboBoxItem Content="All"/>
                 <ComboBoxItem Content="Success"/>
                 <ComboBoxItem Content="Failed"/>

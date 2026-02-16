@@ -99,14 +99,18 @@ public partial class LogService : ILogService
         return entries;
     }
 
-    public async Task<List<LogEntry>> GetRecentLogsAsync(int count = 20, int offset = 0)
+    public async Task<List<LogEntry>> GetRecentLogsAsync(int count = 20, int offset = 0, JobStatus? statusFilter = null)
     {
         var entries = new List<LogEntry>();
         using var connection = _dbContext.CreateConnection();
         using var cmd = connection.CreateCommand();
-        cmd.CommandText = "SELECT * FROM Logs ORDER BY StartTime DESC, Id DESC LIMIT $count OFFSET $offset";
+
+        var where = statusFilter.HasValue ? "WHERE Status = $status " : "";
+        cmd.CommandText = $"SELECT * FROM Logs {where}ORDER BY StartTime DESC, Id DESC LIMIT $count OFFSET $offset";
         cmd.Parameters.AddWithValue("$count", count);
         cmd.Parameters.AddWithValue("$offset", offset);
+        if (statusFilter.HasValue)
+            cmd.Parameters.AddWithValue("$status", (int)statusFilter.Value);
 
         using var reader = await cmd.ExecuteReaderAsync();
         while (await reader.ReadAsync())
@@ -116,21 +120,26 @@ public partial class LogService : ILogService
         return entries;
     }
 
-    public async Task<List<LogEntry>> SearchLogsAsync(string searchText, int count = 20)
+    public async Task<List<LogEntry>> SearchLogsAsync(string searchText, int count = 20, JobStatus? statusFilter = null)
     {
         var entries = new List<LogEntry>();
         using var connection = _dbContext.CreateConnection();
         using var cmd = connection.CreateCommand();
-        cmd.CommandText = @"
-            SELECT * FROM Logs 
-            WHERE JobName LIKE $search 
-               OR StandardOutput LIKE $search 
-               OR Prompt LIKE $search 
-            ORDER BY StartTime DESC, Id DESC 
+
+        var statusClause = statusFilter.HasValue ? "AND Status = $status " : "";
+        cmd.CommandText = $@"
+            SELECT * FROM Logs
+            WHERE (JobName LIKE $search
+               OR StandardOutput LIKE $search
+               OR Prompt LIKE $search)
+            {statusClause}
+            ORDER BY StartTime DESC, Id DESC
             LIMIT $count";
 
         cmd.Parameters.AddWithValue("$search", $"%{searchText}%");
         cmd.Parameters.AddWithValue("$count", count);
+        if (statusFilter.HasValue)
+            cmd.Parameters.AddWithValue("$status", (int)statusFilter.Value);
 
         using var reader = await cmd.ExecuteReaderAsync();
         while (await reader.ReadAsync())
@@ -149,11 +158,21 @@ public partial class LogService : ILogService
         return Convert.ToInt32(await cmd.ExecuteScalarAsync());
     }
 
-    public async Task<int> GetRecentLogCountAsync()
+    public async Task<int> GetRecentLogCountAsync(JobStatus? statusFilter = null)
     {
         using var connection = _dbContext.CreateConnection();
         using var cmd = connection.CreateCommand();
-        cmd.CommandText = "SELECT COUNT(*) FROM Logs";
+
+        if (statusFilter.HasValue)
+        {
+            cmd.CommandText = "SELECT COUNT(*) FROM Logs WHERE Status = $status";
+            cmd.Parameters.AddWithValue("$status", (int)statusFilter.Value);
+        }
+        else
+        {
+            cmd.CommandText = "SELECT COUNT(*) FROM Logs";
+        }
+
         return Convert.ToInt32(await cmd.ExecuteScalarAsync());
     }
 

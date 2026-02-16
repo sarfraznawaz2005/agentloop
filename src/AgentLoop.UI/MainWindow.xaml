@@ -286,33 +286,44 @@
                                     <Run Text=")" Foreground="{StaticResource TextSecondaryBrush}"/>
                                 </TextBlock>
 
-                                <!-- Search Box -->
-                                <Border Grid.Column="1" Margin="0,0,16,0" 
-                                        Background="{StaticResource SurfaceBrush}"
-                                        BorderBrush="{StaticResource BorderBrush}"
-                                        BorderThickness="1"
-                                        CornerRadius="4"
-                                        Width="200"
-                                        VerticalAlignment="Center"
-                                        Visibility="{Binding IsRunLogsExpanded, Converter={StaticResource BoolToVisibility}}">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-                                        <fa:IconBlock Icon="Search" Grid.Column="0" 
-                                                     FontSize="12" Margin="8,0"
-                                                     Foreground="{StaticResource TextSecondaryBrush}"
-                                                     VerticalAlignment="Center"/>
-                                        <TextBox Grid.Column="1" 
-                                                 Text="{Binding LogSearchText, UpdateSourceTrigger=PropertyChanged}"
-                                                 Background="Transparent"
-                                                 BorderThickness="0"
-                                                 Padding="2,4"
-                                                 FontSize="12"
-                                                 VerticalContentAlignment="Center"/>
-                                    </Grid>
-                                </Border>
+                                <!-- Search Box and Status Filter -->
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="0,0,16,0"
+                                            Visibility="{Binding IsRunLogsExpanded, Converter={StaticResource BoolToVisibility}}">
+                                    <Border Background="{StaticResource SurfaceBrush}"
+                                            BorderBrush="{StaticResource BorderBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="4"
+                                            Width="200" Height="28"
+                                            VerticalAlignment="Center"
+                                            Margin="0,0,8,0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            <fa:IconBlock Icon="Search" Grid.Column="0"
+                                                         FontSize="12" Margin="8,0"
+                                                         Foreground="{StaticResource TextSecondaryBrush}"
+                                                         VerticalAlignment="Center"/>
+                                            <TextBox Grid.Column="1"
+                                                     Text="{Binding LogSearchText, UpdateSourceTrigger=PropertyChanged}"
+                                                     Background="Transparent"
+                                                     BorderThickness="0"
+                                                     Padding="2,4"
+                                                     FontSize="12"
+                                                     VerticalContentAlignment="Center"/>
+                                        </Grid>
+                                    </Border>
+                                    <ComboBox Style="{StaticResource ModernComboBox}"
+                                              Width="100" Height="28" FontSize="12"
+                                              Padding="8,4"
+                                              SelectedValue="{Binding LogStatusFilter}"
+                                              SelectedValuePath="Content" VerticalAlignment="Center">
+                                        <ComboBoxItem Content="All"/>
+                                        <ComboBoxItem Content="Success"/>
+                                        <ComboBoxItem Content="Failed"/>
+                                    </ComboBox>
+                                </StackPanel>
 
                                 <StackPanel Grid.Column="2" Orientation="Horizontal">
                                     <Button Style="{StaticResource SecondaryButton}"

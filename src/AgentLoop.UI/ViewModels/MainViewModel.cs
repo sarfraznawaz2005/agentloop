@@ -15,6 +15,7 @@ public class MainViewModel : ViewModelBase
 {
     private string _jobFilter = string.Empty;
     private string _logSearchText = string.Empty;
+    private string _logStatusFilter = "All";
     private JobModel? _selectedJob;
     private bool _isTaskSchedulerRunning;
     private bool _isPaused;
@@ -48,6 +49,16 @@ public class MainViewModel : ViewModelBase
         set
         {
             if (SetProperty(ref _logSearchText, value))
+                ApplyLogFilter();
+        }
+    }
+
+    public string LogStatusFilter
+    {
+        get => _logStatusFilter;
+        set
+        {
+            if (SetProperty(ref _logStatusFilter, value))
                 ApplyLogFilter();
         }
     }
@@ -291,6 +302,12 @@ public class MainViewModel : ViewModelBase
         // Take a snapshot of jobs to process off-thread
         var currentJobs = Jobs.ToList();
         var searchText = LogSearchText;
+        var statusFilter = LogStatusFilter switch
+        {
+            "Success" => (JobStatus?)JobStatus.Success,
+            "Failed" => (JobStatus?)JobStatus.Failure,
+            _ => null
+        };
 
         // Process data off the UI thread
         var (upcoming, logs, totalCount) = await Task.Run(async () =>
@@ -312,15 +329,14 @@ public class MainViewModel : ViewModelBase
 
             if (string.IsNullOrWhiteSpace(searchText))
             {
-                resultLogs = await _logService.GetRecentLogsAsync(_recentLogsLoaded);
+                resultLogs = await _logService.GetRecentLogsAsync(_recentLogsLoaded, statusFilter: statusFilter);
             }
             else
             {
-                // Offload search to SQL for $O(log N)$ performance
-                resultLogs = await _logService.SearchLogsAsync(searchText, 100);
+                resultLogs = await _logService.SearchLogsAsync(searchText, 100, statusFilter);
             }
 
-            var count = await _logService.GetRecentLogCountAsync();
+            var count = await _logService.GetRecentLogCountAsync(statusFilter);
 
             // Trace logging for troubleshooting real-time sync
             if (resultLogs.Any())
