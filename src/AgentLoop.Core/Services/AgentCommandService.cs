@@ -19,10 +19,30 @@ public class AgentCommandService : IAgentCommandService
         return agentCommand.Replace("{prompt}", processedPrompt);
     }
 
+    /// <summary>
+    /// Substitutes the prompt into the agent command with newlines collapsed to spaces,
+    /// safe for passing as process arguments (Windows CreateProcess breaks on embedded newlines).
+    /// </summary>
+    public string SubstitutePromptForExecution(string agentCommand, string prompt)
+    {
+        var now = DateTime.Now;
+        var processedPrompt = prompt
+            .Replace("{date}", now.ToString("yyyy-MM-dd"))
+            .Replace("{time}", now.ToString("HH:mm:ss"))
+            .Replace("{datetime}", now.ToString("yyyy-MM-dd HH:mm:ss"))
+            .Replace("\r\n", " ")
+            .Replace("\r", " ")
+            .Replace("\n", " ");
+
+        return agentCommand.Replace("{prompt}", processedPrompt);
+    }
+
     public async Task<(string Output, string Error, int ExitCode)> ExecuteCommandAsync(
         string command, CancellationToken cancellationToken = default)
     {
-        var (executable, arguments) = ParseCommand(command);
+        // Collapse newlines to spaces so process arguments are not split by CreateProcess
+        var safeCommand = command.Replace("\r\n", " ").Replace("\r", " ").Replace("\n", " ");
+        var (executable, arguments) = ParseCommand(safeCommand);
         var resolvedExe = ResolveExecutablePath(executable);
 
         using var process = new Process();

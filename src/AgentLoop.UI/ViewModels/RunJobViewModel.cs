@@ -92,10 +92,11 @@ public class RunJobViewModel : ViewModelBase
             var timerTask = UpdateElapsedAsync(_cts.Token);
 
             var agentCommand = _agentOverride ?? App.Settings.AgentCommand;
-            var command = App.AgentCommandService.SubstitutePrompt(agentCommand, _prompt);
+            var execCommand = App.AgentCommandService.SubstitutePromptForExecution(agentCommand, _prompt);
+            var displayCommand = App.AgentCommandService.SubstitutePrompt(agentCommand, _prompt);
 
-            // Execute command with live output
-            var (executable, arguments) = Core.Services.AgentCommandService.ParseCommand(command);
+            // Execute command with newline-safe version
+            var (executable, arguments) = Core.Services.AgentCommandService.ParseCommand(execCommand);
             var resolvedExe = Core.Services.AgentCommandService.ResolveExecutablePath(executable);
 
             using var process = new Process();
@@ -152,11 +153,11 @@ public class RunJobViewModel : ViewModelBase
                 ExitCode = process.ExitCode,
                 Status = Status == RunStatus.Completed ? JobStatus.Success : JobStatus.Failure,
                 Prompt = _prompt,
-                Command = command,
+                Command = displayCommand,
                 StandardOutput = stdoutBuilder.ToString().TrimEnd(),
                 StandardError = stderrBuilder.ToString().TrimEnd(),
                 DurationSeconds = ElapsedSeconds,
-                AgentName = AgentHelper.GetAgentNameFromCommand(command)
+                AgentName = AgentHelper.GetAgentNameFromCommand(displayCommand)
             };
 
             await App.LogService.InsertLogEntryAsync(_lastLog);

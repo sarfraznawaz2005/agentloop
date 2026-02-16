@@ -178,8 +178,13 @@ public partial class App : Application
             .Replace("{time}", startTime.ToString("HH:mm:ss"))
             .Replace("{datetime}", startTime.ToString("yyyy-MM-dd HH:mm:ss"));
 
+        // Collapse newlines to spaces for the actual process arguments, since
+        // Windows CreateProcess breaks argument parsing on embedded newlines.
+        // This preserves flags like --no-notify that follow the {prompt} token.
+        var flatPrompt = processedPrompt.Replace("\r\n", " ").Replace("\r", " ").Replace("\n", " ");
+        var execCommand = agentCommand.Replace("{prompt}", flatPrompt);
         var displayCommand = agentCommand.Replace("{prompt}", processedPrompt);
-        var (executable, arguments) = ProcessHelper.ParseCommand(displayCommand);
+        var (executable, arguments) = ProcessHelper.ParseCommand(execCommand);
 
         var processStartInfo = new ProcessStartInfo
         {

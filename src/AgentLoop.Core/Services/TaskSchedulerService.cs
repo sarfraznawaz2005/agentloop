@@ -302,15 +302,16 @@ public class TaskSchedulerService : ITaskSchedulerService
         var exePath = System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName
             ?? Path.Combine(AppContext.BaseDirectory, "AgentLoop.exe");
 
-        // Use plain text arguments for better visibility in WTS
-        // We escape double quotes to ensure the command line remains valid
+        // Base64-encode command and prompt to safely handle multi-line prompts,
+        // special characters, and quotes in Windows Task Scheduler arguments.
+        // The CLI handler in App.xaml.cs decodes these at execution time.
         var commandToUse = !string.IsNullOrWhiteSpace(job.AgentOverride) ? job.AgentOverride : _agentCommand;
-        var escapedCommand = commandToUse.Replace("\"", "\\\"");
-        var escapedPrompt = job.Prompt.Replace("\"", "\\\"");
+        var encodedCommand = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(commandToUse));
+        var encodedPrompt = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(job.Prompt));
 
         var action = new ExecAction(
             exePath,
-            $"--run-job \"{job.Name}\" --command \"{escapedCommand}\" --prompt \"{escapedPrompt}\" --logs \"{_logsDirectory}\"",
+            $"--run-job \"{job.Name}\" {encodedCommand} {encodedPrompt} \"{_logsDirectory}\"",
             null);
 
         td.Actions.Add(action);
