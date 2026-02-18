@@ -226,37 +226,132 @@ public partial class LogService : ILogService
 
     public async Task DeleteLogAsync(long id)
     {
-        using var connection = _dbContext.CreateConnection();
-        using var cmd = connection.CreateCommand();
-        cmd.CommandText = "DELETE FROM Logs WHERE Id = $id";
-        cmd.Parameters.AddWithValue("$id", id);
-        await cmd.ExecuteNonQueryAsync();
+        // First, get the log file path before deleting from database
+        var logFilePath = string.Empty;
+        using (var connection = _dbContext.CreateConnection())
+        {
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "SELECT LogFilePath FROM Logs WHERE Id = $id";
+            cmd.Parameters.AddWithValue("$id", id);
+            var result = await cmd.ExecuteScalarAsync();
+            if (result != null && result != DBNull.Value)
+            {
+                logFilePath = result.ToString() ?? string.Empty;
+            }
+        }
+
+        // Delete from database
+        using (var connection = _dbContext.CreateConnection())
+        {
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "DELETE FROM Logs WHERE Id = $id";
+            cmd.Parameters.AddWithValue("$id", id);
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        // Delete the physical log file if it exists
+        DeleteLogFile(logFilePath);
     }
 
     public async Task DeleteLogAsync(string logFilePath)
     {
+        // Delete from database
         using var connection = _dbContext.CreateConnection();
         using var cmd = connection.CreateCommand();
         cmd.CommandText = "DELETE FROM Logs WHERE LogFilePath = $path";
         cmd.Parameters.AddWithValue("$path", logFilePath);
         await cmd.ExecuteNonQueryAsync();
+
+        // Delete the physical log file if it exists
+        DeleteLogFile(logFilePath);
     }
 
     public async Task ClearJobLogsAsync(string jobName)
     {
-        using var connection = _dbContext.CreateConnection();
-        using var cmd = connection.CreateCommand();
-        cmd.CommandText = "DELETE FROM Logs WHERE JobName = $jobName AND IsFavorite = 0";
-        cmd.Parameters.AddWithValue("$jobName", jobName);
-        await cmd.ExecuteNonQueryAsync();
+        // First, get all log file paths before deleting from database
+        var logFilePaths = new List<string>();
+        using (var connection = _dbContext.CreateConnection())
+        {
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "SELECT LogFilePath FROM Logs WHERE JobName = $jobName AND IsFavorite = 0";
+            cmd.Parameters.AddWithValue("$jobName", jobName);
+            using var reader = await cmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                var path = reader.IsDBNull(0) ? null : reader.GetString(0);
+                if (!string.IsNullOrEmpty(path))
+                {
+                    logFilePaths.Add(path);
+                }
+            }
+        }
+
+        // Delete from database
+        using (var connection = _dbContext.CreateConnection())
+        {
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "DELETE FROM Logs WHERE JobName = $jobName AND IsFavorite = 0";
+            cmd.Parameters.AddWithValue("$jobName", jobName);
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        // Delete the physical log files
+        foreach (var logFilePath in logFilePaths)
+        {
+            DeleteLogFile(logFilePath);
+        }
     }
 
     public async Task ClearAllLogsAsync()
     {
-        using var connection = _dbContext.CreateConnection();
-        using var cmd = connection.CreateCommand();
-        cmd.CommandText = "DELETE FROM Logs WHERE IsFavorite = 0";
-        await cmd.ExecuteNonQueryAsync();
+        // First, get all log file paths before deleting from database
+        var logFilePaths = new List<string>();
+        using (var connection = _dbContext.CreateConnection())
+        {
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "SELECT LogFilePath FROM Logs WHERE IsFavorite = 0";
+            using var reader = await cmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                var path = reader.IsDBNull(0) ? null : reader.GetString(0);
+                if (!string.IsNullOrEmpty(path))
+                {
+                    logFilePaths.Add(path);
+                }
+            }
+        }
+
+        // Delete from database
+        using (var connection = _dbContext.CreateConnection())
+        {
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "DELETE FROM Logs WHERE IsFavorite = 0";
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        // Delete the physical log files
+        foreach (var logFilePath in logFilePaths)
+        {
+            DeleteLogFile(logFilePath);
+        }
+    }
+
+    private static void DeleteLogFile(string? logFilePath)
+    {
+        if (string.IsNullOrEmpty(logFilePath)) return;
+
+        try
+        {
+            if (File.Exists(logFilePath))
+            {
+                File.Delete(logFilePath);
+            }
+        }
+        catch (Exception)
+        {
+            // Silently ignore file deletion errors (file may be locked or already deleted)
+            // The database entry is already deleted, so the log is effectively removed from the app
+        }
     }
 
     public async Task RotateLogsAsync(int maxSizeMb = 2)
@@ -269,11 +364,38 @@ public partial class LogService : ILogService
 
     public async Task PurgeOldLogsAsync(int retentionDays)
     {
-        using var connection = _dbContext.CreateConnection();
-        using var cmd = connection.CreateCommand();
-        cmd.CommandText = "DELETE FROM Logs WHERE StartTime < $cutoff AND IsFavorite = 0";
-        cmd.Parameters.AddWithValue("$cutoff", DateTime.Now.AddDays(-retentionDays).ToString("o"));
-        await cmd.ExecuteNonQueryAsync();
+        // First, get all log file paths before deleting from database
+        var logFilePaths = new List<string>();
+        using (var connection = _dbContext.CreateConnection())
+        {
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "SELECT LogFilePath FROM Logs WHERE StartTime < $cutoff AND IsFavorite = 0";
+            cmd.Parameters.AddWithValue("$cutoff", DateTime.Now.AddDays(-retentionDays).ToString("o"));
+            using var reader = await cmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                var path = reader.IsDBNull(0) ? null : reader.GetString(0);
+                if (!string.IsNullOrEmpty(path))
+                {
+                    logFilePaths.Add(path);
+                }
+            }
+        }
+
+        // Delete from database
+        using (var connection = _dbContext.CreateConnection())
+        {
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "DELETE FROM Logs WHERE StartTime < $cutoff AND IsFavorite = 0";
+            cmd.Parameters.AddWithValue("$cutoff", DateTime.Now.AddDays(-retentionDays).ToString("o"));
+            await cmd.ExecuteNonQueryAsync();
+        }
+
+        // Delete the physical log files
+        foreach (var logFilePath in logFilePaths)
+        {
+            DeleteLogFile(logFilePath);
+        }
     }
 
     public async Task ToggleFavoriteAsync(long id, bool isFavorite)
