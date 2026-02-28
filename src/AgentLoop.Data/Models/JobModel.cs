@@ -1,7 +1,11 @@
+using System.ComponentModel;
+
 namespace AgentLoop.Data.Models;
 
-public class JobModel
+public class JobModel : INotifyPropertyChanged
 {
+    private bool _isRunning;
+
     public string Name { get; set; } = string.Empty;
     public string Prompt { get; set; } = string.Empty;
     public ScheduleModel Schedule { get; set; } = new();
@@ -12,4 +16,19 @@ public class JobModel
     public string? Icon { get; set; }
     public DateTime? LastRunTime { get; set; }
     public DateTime? NextRunTime { get; set; }
+
+    public bool IsRunning
+    {
+        get => _isRunning;
+        set
+        {
+            if (_isRunning != value)
+            {
+                _isRunning = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsRunning)));
+            }
+        }
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
 }

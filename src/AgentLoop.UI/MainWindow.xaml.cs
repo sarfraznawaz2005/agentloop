@@ -54,8 +54,10 @@ public partial class MainWindow : Window
 
     private void OnRequestRunNow(Data.Models.JobModel job)
     {
+        _viewModel.MarkJobRunning(job.Name, true);
         var dialog = new Views.RunJobDialog(job) { Owner = this };
         dialog.ShowDialog();
+        _viewModel.MarkJobRunning(job.Name, false);
     }
 
     private void OnRequestOpenSettings()

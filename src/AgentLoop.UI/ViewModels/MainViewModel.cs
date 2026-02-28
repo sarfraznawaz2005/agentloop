@@ -27,6 +27,7 @@ public class MainViewModel : ViewModelBase
     private readonly DispatcherTimer _dataRefreshTimer;
     private readonly SemaphoreSlim _refreshLock = new(1, 1);
     private bool _isRefreshQueued;
+    private readonly HashSet<string> _runningJobNames = new();
 
     public ObservableCollection<JobModel> Jobs { get; } = [];
     public ObservableCollection<JobModel> FilteredJobs { get; } = [];
@@ -282,7 +283,16 @@ public class MainViewModel : ViewModelBase
             {
                 var previousSelection = SelectedJob?.Name;
                 UpdateCollection(Jobs, allJobs, (j1, j2) => j1.Name == j2.Name);
+
+                // Restore IsRunning state after refresh replaces job objects
+                foreach (var job in Jobs.Where(j => _runningJobNames.Contains(j.Name)))
+                    job.IsRunning = true;
+
                 ApplyJobFilter();
+
+                foreach (var job in FilteredJobs.Where(j => _runningJobNames.Contains(j.Name)))
+                    job.IsRunning = true;
+
                 if (previousSelection != null)
                     SelectedJob = FilteredJobs.FirstOrDefault(j => j.Name == previousSelection);
                 OnPropertyChanged(nameof(ActiveJobCount));
@@ -545,6 +555,19 @@ public class MainViewModel : ViewModelBase
     {
         _appLogService.LogInfo("APP_EXIT", "Application exited by user");
         Application.Current.Shutdown();
+    }
+
+    public void MarkJobRunning(string jobName, bool isRunning)
+    {
+        if (isRunning)
+            _runningJobNames.Add(jobName);
+        else
+            _runningJobNames.Remove(jobName);
+
+        foreach (var job in Jobs.Where(j => j.Name == jobName))
+            job.IsRunning = isRunning;
+        foreach (var job in FilteredJobs.Where(j => j.Name == jobName))
+            job.IsRunning = isRunning;
     }
 }
 

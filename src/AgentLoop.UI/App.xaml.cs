@@ -223,8 +223,8 @@ public partial class App : Application
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
 
-            // Wait for up to 10 minutes for the agent to complete
-            if (process.WaitForExit(600000))
+            // Wait for up to 30 minutes for the agent to complete
+            if (process.WaitForExit(1800000))
             {
                 exitCode = process.ExitCode;
             }
@@ -232,7 +232,7 @@ public partial class App : Application
             {
                 process.Kill(true);
                 exitCode = -1;
-                stderrBuilder.AppendLine("Error: Command timed out after 10 minutes.");
+                stderrBuilder.AppendLine("Error: Command timed out after 30 minutes.");
             }
         }
         catch (Exception ex)

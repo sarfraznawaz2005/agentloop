@@ -96,7 +96,8 @@ public class TaskSchedulerService : ITaskSchedulerService
                     Icon = metadata.Value.Icon,
                     Schedule = ParseScheduleFromTriggers(task.Definition.Triggers),
                     LastRunTime = (task.LastRunTime > DateTime.MinValue && task.LastRunTime.Year > 2000) ? task.LastRunTime : null,
-                    NextRunTime = (task.NextRunTime > DateTime.MinValue) ? task.NextRunTime : null
+                    NextRunTime = (task.NextRunTime > DateTime.MinValue) ? task.NextRunTime : null,
+                    IsRunning = task.State == TaskState.Running
                 });
             }
         }
